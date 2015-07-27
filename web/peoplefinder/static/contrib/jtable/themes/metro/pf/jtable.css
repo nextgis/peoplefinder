@@ -1,4 +1,4 @@
-﻿/* jTable metro style theme - Blue
+/* jTable metro style theme - Blue
  * Created by Halil İbrahim Kalkan
  * http://www.jtable.org
  */
@@ -246,11 +246,9 @@ form.jtable-dialog-form div.jtable-input {
 }
 form.jtable-dialog-form div.jtable-date-input {
   /* No additional style */
-
 }
 form.jtable-dialog-form div.jtable-text-input {
   /* No additional style */
-
 }
 form.jtable-dialog-form span.jtable-option-text-clickable {
   position: relative;
@@ -271,7 +269,7 @@ form.jtable-dialog-form span.jtable-option-text-clickable {
 }
 div.jtable-busy-panel-background {
   opacity: 0.1;
-  filter: alpha(opacity=50);
+  filter: alpha(opacity=10);
   z-index: 998;
   position: absolute;
   background-color: #000;
@@ -301,7 +299,7 @@ div.jtable-main-container {
   line-height: 1.3;
 }
 div.jtable-main-container > div.jtable-title {
-  background-color: #0b67cd;
+  background-color: #115895;
   padding-left: 10px;
 }
 div.jtable-main-container > div.jtable-title div.jtable-title-text {
@@ -318,13 +316,13 @@ div.jtable-main-container > div.jtable-title .jtable-close-button {
   position: absolute;
   opacity: 0.5;
   filter: alpha(opacity=50);
-  background: url('../../metro/close.png') no-repeat;
+  background: url('metro/close.png') no-repeat;
   width: 16px;
   height: 16px;
 }
 div.jtable-main-container > div.jtable-title .jtable-close-button:hover {
   opacity: 1;
-  filter: alpha(opacity=50);
+  filter: alpha(opacity=100);
 }
 div.jtable-main-container > div.jtable-title div.jtable-toolbar {
   bottom: 0px;
@@ -332,23 +330,23 @@ div.jtable-main-container > div.jtable-title div.jtable-toolbar {
   position: absolute;
 }
 div.jtable-main-container > div.jtable-title div.jtable-toolbar span.jtable-toolbar-item {
-  background-color: #1571d7;
+  background-color: #1b629f;
   color: white;
 }
 div.jtable-main-container > div.jtable-title div.jtable-toolbar span.jtable-toolbar-item.jtable-toolbar-item-add-record span.jtable-toolbar-item-icon {
-  background-image: url('../../metro/add.png');
+  background-image: url('metro/add.png');
 }
 div.jtable-main-container > div.jtable-title div.jtable-toolbar span.jtable-toolbar-item.jtable-toolbar-item-hover {
-  background-color: #1c78de;
+  background-color: #2269a6;
   padding-bottom: 6px;
 }
 div.jtable-main-container > table.jtable {
-  border: 1px solid #2d89ef;
+  border: 1px solid #337ab7;
   border-collapse: collapse;
   border-spacing: 0;
 }
 div.jtable-main-container > table.jtable > thead {
-  background-color: #2d89ef;
+  background-color: #337ab7;
 }
 div.jtable-main-container > table.jtable > thead th {
   font-family: 'Segoe UI Semilight', 'Open Sans', Verdana, Arial, Helvetica, sans-serif;
@@ -367,13 +365,13 @@ div.jtable-main-container > table.jtable > thead th.jtable-column-header div.jta
   margin-top: 2px;
 }
 div.jtable-main-container > table.jtable > thead th.jtable-column-header-sortable div.jtable-column-header-container {
-  background: url('../../metro/column-sortable.png') no-repeat right;
+  background: url('metro/column-sortable.png') no-repeat right;
 }
 div.jtable-main-container > table.jtable > thead th.jtable-column-header-sorted-asc div.jtable-column-header-container {
-  background: url('../../metro/column-asc.png') no-repeat right;
+  background: url('metro/column-asc.png') no-repeat right;
 }
 div.jtable-main-container > table.jtable > thead th.jtable-column-header-sorted-desc div.jtable-column-header-container {
-  background: url('../../metro/column-desc.png') no-repeat right;
+  background: url('metro/column-desc.png') no-repeat right;
 }
 div.jtable-main-container > table.jtable > tbody > tr {
   background-color: #fff;
@@ -385,7 +383,7 @@ div.jtable-main-container > table.jtable > tbody > tr.jtable-data-row > td {
   padding: 4px;
 }
 div.jtable-main-container > table.jtable > tbody > tr.jtable-data-row > td > .jtable-edit-command-button {
-  background: url('../../metro/edit.png') no-repeat;
+  background: url('metro/edit.png') no-repeat;
   width: 16px;
   height: 16px;
   opacity: 0.4;
@@ -394,7 +392,7 @@ div.jtable-main-container > table.jtable > tbody > tr.jtable-data-row > td > .jt
   opacity: 0.8;
 }
 div.jtable-main-container > table.jtable > tbody > tr.jtable-data-row > td > .jtable-delete-command-button {
-  background: url('../../metro/delete.png') no-repeat;
+  background: url('metro/delete.png') no-repeat;
   width: 16px;
   height: 16px;
   opacity: 0.4;
@@ -410,13 +408,13 @@ div.jtable-main-container > table.jtable > tbody > tr:hover {
 }
 div.jtable-main-container > table.jtable > tbody > tr.jtable-row-selected {
   color: #fff;
-  background-color: #4fabff;
+  background-color: #559cd9;
 }
 div.jtable-main-container > table.jtable > tbody > tr.jtable-row-created {
-  background-color: #60bcff;
+  background-color: #66adea;
 }
 div.jtable-main-container > table.jtable > tbody > tr.jtable-row-updated {
-  background-color: #60bcff;
+  background-color: #66adea;
 }
 div.jtable-main-container > table.jtable > tbody > tr.jtable-row-deleting {
   background-color: #e51400;
@@ -427,11 +425,11 @@ div.jtable-main-container > table.jtable > tbody > tr.jtable-child-row > td {
   background-color: #fff;
 }
 div.jtable-main-container > div.jtable-bottom-panel {
-  background-color: #1c78de;
+  background-color: #2269a6;
   color: #fff;
-  min-height: 22.900000000000002px;
+  min-height: 22.9px;
   font-size: 13px;
-  border: 1px solid #2d89ef;
+  border: 1px solid #337ab7;
   border-top: none;
 }
 div.jtable-main-container > div.jtable-bottom-panel .jtable-page-list {
@@ -444,7 +442,7 @@ div.jtable-main-container > div.jtable-bottom-panel .jtable-page-list .jtable-pa
 div.jtable-main-container > div.jtable-bottom-panel .jtable-page-list .jtable-page-number-previous,
 div.jtable-main-container > div.jtable-bottom-panel .jtable-page-list .jtable-page-number-next,
 div.jtable-main-container > div.jtable-bottom-panel .jtable-page-list .jtable-page-number-active {
-  background-color: #2d89ef;
+  background-color: #337ab7;
   margin: 1px;
   padding: 2px 5px;
   color: #fff;
@@ -454,16 +452,16 @@ div.jtable-main-container > div.jtable-bottom-panel .jtable-page-list .jtable-pa
 div.jtable-main-container > div.jtable-bottom-panel .jtable-page-list .jtable-page-number-last:hover,
 div.jtable-main-container > div.jtable-bottom-panel .jtable-page-list .jtable-page-number-previous:hover,
 div.jtable-main-container > div.jtable-bottom-panel .jtable-page-list .jtable-page-number-next:hover {
-  background-color: #4fabff;
+  background-color: #559cd9;
 }
 div.jtable-main-container > div.jtable-bottom-panel .jtable-page-list .jtable-page-number-disabled {
   opacity: 0.75;
-  filter: alpha(opacity=50);
+  filter: alpha(opacity=75);
   color: #ccc;
   cursor: default;
 }
 div.jtable-main-container > div.jtable-bottom-panel .jtable-page-list .jtable-page-number-disabled:hover {
-  background-color: #2d89ef;
+  background-color: #337ab7;
 }
 div.jtable-main-container > div.jtable-bottom-panel span.jtable-page-info {
   display: inline-block;
@@ -489,7 +487,7 @@ div.jtable-busy-message {
   border: 1px solid #fff;
   padding: 5px 5px 5px 58px;
   color: #fff;
-  background: url('../../metro/blue/loading.gif') no-repeat;
-  background-color: #0b67cd;
+  background: url('loading.gif') no-repeat;
+  background-color: #115895;
   background-position: 8px;
 }
