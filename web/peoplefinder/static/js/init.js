@@ -8,4 +8,6 @@ $(document).ready(function () {
 });
 
 function loadModules() {
+    pf.modules.map.init();
+    pf.modules.imsiTable.init();
 }
