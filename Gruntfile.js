@@ -37,6 +37,7 @@ module.exports = function (grunt) {
                         'web/peoplefinder/static/contrib/bootstrap/css/bootstrap.min.css',
                         'web/peoplefinder/static/contrib/font-awesome/css/font-awesome.min.css',
                         'web/peoplefinder/static/contrib/leaflet/leaflet-1.0.0-b1/leaflet.css',
+                        'web/peoplefinder/static/contrib/jtable/themes/metro/pf/jtable.css',
                         'web/peoplefinder/static/styles/styles.css'
                     ]
                 }
