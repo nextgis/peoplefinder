@@ -1,16 +1,48 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Peoplefinder empty Template</title>
+<%inherit file="_master.mako"/>
 
-    <link href="${request.static_url('peoplefinder:static/contrib/bootstrap/css/bootstrap.min.css')}" rel="stylesheet">
-  </head>
-  <body>
-    <h1>Peoplefinder empty Template</h1>
-    <script src="${request.static_url('peoplefinder:static/contrib/jquery/jquery-1.11.3.min.js')}"></script>
-    <script src="${request.static_url('peoplefinder:static/contrib/bootstrap/js/bootstrap.min.js')}"></script>
-  </body>
-</html>
+<div id="body">
+    <div class="container">
+        <div class="row margin-top-10 margin-bottom-10">
+            <div class="col-md-8">
+                <div id="map"></div>
+            </div>
+            <div id="rightPanel" class="col-md-4">
+                <div class="row">
+                    <span class="text-uppercase sub-header">Target IMSI</span>
+
+                    <div class="input-group">
+                        <input type="text" id="imsi-input" maxlength="15" class="form-control" placeholder="IMSI"/>
+                        <span class="input-group-addon">
+                            <i class="fa fa-crosshairs"></i>
+                        </span>
+                    </div>
+                    <div class="inner-row">
+                        <button type="button" id="ping-btn" class="btn btn-primary">Start Tracking &raquo;</button>
+                        <button type="button" id="clear-btn" class="btn btn-link btn-xs">Clear Results</button>
+                    </div>
+                </div>
+                <div class="row">
+                    <span class="text-uppercase sub-header">Registered Mobile IMSI</span>
+
+                    <div id="imsiTable"></div>
+                </div>
+                <div class="row">
+                    <span class="text-uppercase sub-header">SMS Comms</span>
+                    <textarea id="sms-txta" class="form-control input-sm" rows="9" readonly></textarea>
+
+                    <div class="inner-row">
+                        <div class="input-group">
+                            <input type="text" id="sms-input" maxlength="160" class="form-control"
+                                   placeholder="SMS Message"/>
+                            <span class="input-group-btn">
+                                <button type="button" id="sendsms-btn" class="btn btn-default">
+                                    <i class="fa fa-send"></i>
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
