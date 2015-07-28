@@ -18,7 +18,7 @@
             <div class="container-fluid">
                 <div class="navbar-header">
                     <a href="#">
-                        <span class="logo logo-gray">peolpe</span>
+                        <span class="logo logo-gray">people</span>
                         <span class="logo logo-orange">finder</span>
                         <small></small>
                     </a>
@@ -44,7 +44,7 @@
             <div class="col-md-5">
                 <div class="pull-right">
                     <a href="home">
-                        <span class="logo logo-gray">peolpe</span>
+                        <span class="logo logo-gray">people</span>
                         <span class="logo logo-orange">finder</span>
                     </a>
                 </div>
