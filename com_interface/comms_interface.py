@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 import os
-import sys
-import multiprocessing
-from multiprocessing.managers import BaseManager
 import argparse
 import ConfigParser
 import time
+import datetime
+import multiprocessing
+from multiprocessing.managers import BaseManager
+from sqlalchemy import create_engine
+import transaction
 
-
-import db_peewee_models
+from model import models
+from model.models import DBSession
 import logging_utils
+from meas_json_client import MeasJsonListenerProcess
 # import xmlrpc_server
 # import osmo_nitb_utils
-from meas_json_client import MeasJsonListenerProcess
-
-# import gc
 
 
 default_config_file = os.path.join(os.getcwd(), "config.ini")
@@ -30,7 +30,10 @@ class MeasurementsModel(object):
     def __init__(self, pf_db_url):
         self._last_measurements = {}
 
-        db_peewee_models.database.init(pf_db_url)
+        # db_peewee_models.database.init(pf_db_url)
+        engine = create_engine("sqlite:///{0}".format(pf_db_url), echo=True)
+        DBSession.configure(bind=engine)
+
         self._fill_from_db()
 
         self.logger = logging_utils.get_logger("MeasurementsModel")
@@ -39,23 +42,19 @@ class MeasurementsModel(object):
         pass
 
     def add_measurement(self, meas):
-        with db_peewee_models.database.transaction():
-            db_peewee_models.Measure.create(
-                imsi=meas['imsi'],
-                time=meas['time'],
-                ta=meas['meas_rep']['L1_TA'])
-            # if meas['imsi'] in self._last_measurements:
+        distance = self.__calculate_distance(long(meas['meas_rep']['L1_TA']))
 
-            #     sq = db_models.MobileStation.select().where(
-            #         db_models.MobileStation.imsi == meas['imsi'])
-            #     if sq.count() == 0:
-            #         ms = db_models.MobileStation.create(imsi=meas['imsi'],
-            #                                             number="915 12")
-            #     else:
-            #         ms = sq.get()
-            #     db_models.Measure.create(mobile_station=ms,
-            #                              time=meas['time'],
-            #                              ta=meas['meas_rep']['L1_TA'])
+        with transaction.manager:
+            obj = models.Measure(imsi=meas['imsi'],
+                                 timestamp=datetime.datetime.fromtimestamp(meas['time']),
+                                 timing_advance=meas['meas_rep']['L1_TA'],
+                                 distance=distance,
+                                 phone_number="xxx xxx xx xx",
+                                 gps_lat=0.0,
+                                 gps_lon=0.0,
+                                 )
+
+            models.DBSession.add(obj)
 
         self._last_measurements[meas['imsi']] = meas['time']
 
@@ -70,6 +69,9 @@ class MeasurementsModel(object):
 
     def __unicode__(self):
         return unicode(repr(self._last_measurements.keys()))
+
+    def __calculate_distance(self, ta, te=1.0):
+        return 0.001 * ta * 535
 
 
 # Read queue measurements.
@@ -206,17 +208,8 @@ if __name__ == "__main__":
     logger.info("Comm interface started! pid: {0}".format(os.getpid()))
 
     # Init DB ================================================================
-    pf_db_url = os.path.join(os.path.dirname(__file__), '..', 'storage', 'pf-peewee.db')
-
-    try:
-        db_peewee_models.database.init(pf_db_url)
-        with db_peewee_models.database.transaction():
-            db_peewee_models.database.create_tables(
-                [db_peewee_models.Measure],
-                True)
-    except:
-        logger.error("Cann't connect/create table/db")
-        sys.exit("Cann't connect/create table/db")
+    pf_db_url = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'storage', 'pf.sqlite')
+    logger.info("pf.sqlite path: {0}".format(pf_db_url))
 
     # Init shared objects ====================================================
     manager = MeasurementQueueManager()
@@ -231,6 +224,7 @@ if __name__ == "__main__":
     logger.info("Init meas_json listener")
     meas_json_listener = MeasJsonListenerProcess(queue_measurement, args.test_mode)
     # meas_json_listener.daemon = True
+
     # logger.info("Init xml-rpc server")
     # requsets_server = xmlrpc_server.XMLRPCProcess()
 
