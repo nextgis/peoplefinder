@@ -59,5 +59,9 @@
         <script src="${request.static_url('peoplefinder:static/build/peoplefinder.min.js')}"></script>
     % endif
 
+<script>
+    pf.root_url = '${request.application_url}';
+</script>
+
 </body>
 </html>
