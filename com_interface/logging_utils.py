@@ -24,7 +24,7 @@ def get_logger(name, level=logging.DEBUG):
 
     clh = CustomLogHandler('comms_interface.log')
     clh.setLevel(level)
-    clh.setVerboseFormatter(formatter_verbose)
+    # clh.setVerboseFormatter(formatter_verbose)
     clh.setSimpleFormatter(formatter_simple)
 
     logger.addHandler(clh)
@@ -45,7 +45,7 @@ class CustomLogHandler(logging.Handler):
     def __init__(self, fname):
         logging.Handler.__init__(self)
 
-        self._file_handler = logging.FileHandler(fname)
+        # self._file_handler = logging.FileHandler(fname)
         self._stream_handler = logging.StreamHandler()
 
         self.queue = multiprocessing.Queue(-1)
@@ -56,11 +56,12 @@ class CustomLogHandler(logging.Handler):
 
     def setFormatter(self, fmt):
         logging.Handler.setFormatter(self, fmt)
-        self._file_handler.setFormatter(fmt)
+        # self._file_handler.setFormatter(fmt)
         self._stream_handler.setFormatter(fmt)
 
     def setVerboseFormatter(self, fmt):
-        self._file_handler.setFormatter(fmt)
+        # self._file_handler.setFormatter(fmt)
+        self._stream_handler.setFormatter(fmt)
 
     def setSimpleFormatter(self, fmt):
         self._stream_handler.setFormatter(fmt)
@@ -69,7 +70,7 @@ class CustomLogHandler(logging.Handler):
         while True:
             try:
                 record = self.queue.get()
-                self._file_handler.emit(record)
+                # self._file_handler.emit(record)
                 self._stream_handler.emit(record)
             except (KeyboardInterrupt, SystemExit):
                 raise

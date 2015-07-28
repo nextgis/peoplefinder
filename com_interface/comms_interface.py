@@ -31,7 +31,7 @@ class MeasurementsModel(object):
         self._last_measurements = {}
 
         # db_peewee_models.database.init(pf_db_url)
-        engine = create_engine("sqlite:///{0}".format(pf_db_url), echo=True)
+        engine = create_engine("sqlite:///{0}".format(pf_db_url), echo=False)
         DBSession.configure(bind=engine)
 
         self._fill_from_db()
@@ -219,11 +219,9 @@ if __name__ == "__main__":
     # Init processes =========================================================
     logger.info("Init meas heandler writer")
     meas_handler = MeasHandler(queue_measurement, pf_db_url)
-    # meas_handler.daemon = True
 
     logger.info("Init meas_json listener")
     meas_json_listener = MeasJsonListenerProcess(queue_measurement, args.test_mode)
-    # meas_json_listener.daemon = True
 
     # logger.info("Init xml-rpc server")
     # requsets_server = xmlrpc_server.XMLRPCProcess()
