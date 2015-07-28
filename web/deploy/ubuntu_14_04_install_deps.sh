@@ -19,4 +19,11 @@ virtualenv env
 
 # install supervisor
 sudo aptitude install supervisor
-service supervisor restart
+sudo service supervisor restart
+
+# clone repository
+git clone https://github.com/nextgis/peoplefinder.git
+
+# install application
+cd ~
+./env/bin/pip install -e ./peoplefinder/web
