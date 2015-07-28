@@ -8,6 +8,10 @@ body {
     background: #fff
 }
 
+div.navbar-header a:hover {
+    text-decoration: none;
+}
+
 span.logo {
     font-weight: 700;
     font-size: 40px;
