@@ -3,7 +3,7 @@ OpenBSC-based web application for UmSite GSM to locate people.
 
 Components:
 
-* UmSite GSM basestation
+* UmSite GSM basestation + additional hardware
 * Telephony backend software
 * PeopleFinder backend software
 * PeopleFinder frontend
