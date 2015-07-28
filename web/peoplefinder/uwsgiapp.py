@@ -2,7 +2,9 @@
 import os
 
 from paste.deploy import loadapp
-app = loadapp('config:' + os.environ['PASTE_CONFIG'])
+
+if 'PASTE_CONFIG' in os.environ:
+    app = loadapp('config:' + os.environ['PASTE_CONFIG'])
 
 
 def application(environ, start_response):
