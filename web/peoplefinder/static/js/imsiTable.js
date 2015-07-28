@@ -16,7 +16,17 @@
 
         buildTable: function () {
             pf.view.$imsiTable.jtable({
-                actions: {},
+                actions: {
+                    listAction: pf.root_url + '/imsi/list'
+                },
+                ajaxSettings: {
+                    type: 'GET',
+                    dataType: 'json'
+                },
+                recordsLoaded: function (event, data) {
+                    console.log(data);
+                },
+                sorting: true,
                 fields: {
                     imsi: {
                         title: 'IMSI'
@@ -27,10 +37,12 @@
                 }
             });
             pf.viewmodel.imsiTable = pf.view.$imsiTable.data('hik-jtable');
+            pf.viewmodel.imsiTable.load();
         },
 
         overwriteJTableMethods: function () {
-            pf.viewmodel.imsiTable._showError = function () {};
+            pf.viewmodel.imsiTable._showError = function () {
+            };
         }
     });
 }(jQuery, pf, L));
