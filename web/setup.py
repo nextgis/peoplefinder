@@ -38,5 +38,7 @@ setup(name='peoplefinder',
       entry_points="""\
       [paste.app_factory]
       main = peoplefinder:main
+      [console_scripts]
+      initialize_peoplefinder_db = peoplefinder.scripts.initializedb:main
       """,
       )
