@@ -1,6 +1,7 @@
 #!/bin/bash
 
 sudo apt-get install aptitude
+sudo apt-get install python-dev
 
 # install nginx
 sudo apt-get install python-software-properties
@@ -27,3 +28,6 @@ git clone https://github.com/nextgis/peoplefinder.git
 # install application
 cd ~
 ./env/bin/pip install -e ./peoplefinder/web
+
+# install uwsgi
+./env/bin/pip install uwsgi
