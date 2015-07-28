@@ -46,7 +46,7 @@ class CustomLogHandler(logging.Handler):
         logging.Handler.__init__(self)
 
         # self._file_handler = logging.FileHandler(fname)
-        self._stream_handler = logging.StreamHandler()
+        self._stream_handler = logging.StreamHandler(sys.stdout)
 
         self.queue = multiprocessing.Queue(-1)
 
