@@ -101,6 +101,6 @@ class CustomLogHandler(logging.Handler):
             self.handleError(record)
 
     def close(self):
-        self._file_handler.close()
+        # self._file_handler.close()
         self._stream_handler.close()
         logging.Handler.close(self)
