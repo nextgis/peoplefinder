@@ -8,6 +8,7 @@ from model.models import (
     Measure,
 )
 
+
 @view_config(route_name='get_imsi_list', renderer='json')
 def get_imsi_list(request):
     result = []
@@ -18,7 +19,6 @@ def get_imsi_list(request):
         func.max(Measure.timestamp).label("last")
     ).group_by(Measure.imsi).all()
 
-
     for measure in query:
         dtime = datetime.datetime.now() - measure.last
         result.append({
@@ -26,7 +26,6 @@ def get_imsi_list(request):
             'imsi': measure.imsi,
             'last_lur': dtime.total_seconds() // 60
         })
-
 
     if 'jtSorting' in request.GET:
         sorting_params = request.GET['jtSorting'].split(' ')
