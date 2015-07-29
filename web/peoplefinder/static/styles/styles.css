@@ -48,6 +48,10 @@ span.logo {
     margin: 0;
 }
 
+#imsiTable {
+    height: 221px;
+}
+
 div.footer {
     font-size: 12px;
     padding: 5px 10px;
