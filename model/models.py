@@ -4,6 +4,7 @@ from sqlalchemy import (
     Text,
     DateTime,
     Float,
+    create_engine,
     )
 
 from sqlalchemy.ext.declarative import declarative_base
@@ -17,6 +18,11 @@ from zope.sqlalchemy import ZopeTransactionExtension
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
+
+
+def bind_engin(connection_string, echo=False):
+    engine = create_engine(connection_string, echo=echo)
+    DBSession.configure(bind=engine)
 
 
 class Measure(Base):

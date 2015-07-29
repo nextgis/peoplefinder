@@ -30,7 +30,7 @@ class MeasJsonListenerProcess(multiprocessing.Process):
         if self.__test_mode:
             cmd = ['python', '-u', os.path.join(os.path.dirname(__file__), u"emulators", u"emulator_meas_json.py")]
         else:
-            cmd = ['meas_json']
+            cmd = ["stdbuf", "-oL", 'meas_json']
 
         proc = subprocess.Popen(
             cmd,

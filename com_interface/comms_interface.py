@@ -6,11 +6,9 @@ import time
 import datetime
 import multiprocessing
 from multiprocessing.managers import BaseManager
-from sqlalchemy import create_engine
 import transaction
 
-from model import models
-from model.models import DBSession
+from model.models import bind_engin, Measure, DBSession
 import logging_utils
 from meas_json_client import MeasJsonListenerProcess
 # import xmlrpc_server
@@ -27,34 +25,27 @@ wellcome_message = "You are connected to a mobile search and rescue team. \
 # Write measurements to DB.
 # Cache last measurement time for imsi.
 class MeasurementsModel(object):
-    def __init__(self, pf_db_url):
+    def __init__(self, pf_db_connection_string):
         self._last_measurements = {}
 
-        # db_peewee_models.database.init(pf_db_url)
-        engine = create_engine("sqlite:///{0}".format(pf_db_url), echo=False)
-        DBSession.configure(bind=engine)
-
-        self._fill_from_db()
+        bind_engin(pf_db_connection_string)
 
         self.logger = logging_utils.get_logger("MeasurementsModel")
-
-    def _fill_from_db(self):
-        pass
 
     def add_measurement(self, meas):
         distance = self.__calculate_distance(long(meas['meas_rep']['L1_TA']))
 
         with transaction.manager:
-            obj = models.Measure(imsi=meas['imsi'],
-                                 timestamp=datetime.datetime.fromtimestamp(meas['time']),
-                                 timing_advance=meas['meas_rep']['L1_TA'],
-                                 distance=distance,
-                                 phone_number="xxx xxx xx xx",
-                                 gps_lat=0.0,
-                                 gps_lon=0.0,
-                                 )
+            obj = Measure(imsi=meas['imsi'],
+                          timestamp=datetime.datetime.fromtimestamp(meas['time']),
+                          timing_advance=meas['meas_rep']['L1_TA'],
+                          distance=distance,
+                          phone_number="xxx xxx xx xx",
+                          gps_lat=0.0,
+                          gps_lon=0.0,
+                          )
 
-            models.DBSession.add(obj)
+            DBSession.add(obj)
 
         self._last_measurements[meas['imsi']] = meas['time']
 
@@ -65,7 +56,11 @@ class MeasurementsModel(object):
         return len(self._last_measurements)
 
     def __contains__(self, imsi):
-        return imsi in self._last_measurements
+        # return imsi in self._last_measurements
+        if DBSession.query(Measure).filter(Measure.imsi == imsi).count() > 0:
+            return True
+
+        return False
 
     def __unicode__(self):
         return unicode(repr(self._last_measurements.keys()))
@@ -208,8 +203,14 @@ if __name__ == "__main__":
     logger.info("Comm interface started! pid: {0}".format(os.getpid()))
 
     # Init DB ================================================================
-    pf_db_url = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'storage', 'pf.sqlite')
-    logger.info("pf.sqlite path: {0}".format(pf_db_url))
+    pf_db_conn_str = "sqlite:///{0}".format(
+        os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            '..',
+            'storage',
+            'pf.sqlite'))
+
+    logger.info("pf.sqlite path: {0}".format(pf_db_conn_str))
 
     # Init shared objects ====================================================
     manager = MeasurementQueueManager()
@@ -218,7 +219,7 @@ if __name__ == "__main__":
 
     # Init processes =========================================================
     logger.info("Init meas heandler writer")
-    meas_handler = MeasHandler(queue_measurement, pf_db_url)
+    meas_handler = MeasHandler(queue_measurement, pf_db_conn_str)
 
     logger.info("Init meas_json listener")
     meas_json_listener = MeasJsonListenerProcess(queue_measurement, args.test_mode)
