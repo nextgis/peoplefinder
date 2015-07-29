@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# default values
+HOME=/home/cloud
+NGINX_CONF_DIR=/etc/nginx
+SUPERVISOR_CONF_DIR=/etc/supervisor/conf.d
+
 sudo apt-get install aptitude
 sudo apt-get install python-dev
 
@@ -14,20 +19,33 @@ sudo apt-get install nginx
 sudo aptitude install python-pip
 sudo pip install virtualenv
 
-# create env into cloud directory
-cd ~
-virtualenv env
-
 # install supervisor
 sudo aptitude install supervisor
 sudo service supervisor restart
 
+# create env into home directory
+virtualenv $HOME/env
+
 # clone repository
-git clone https://github.com/nextgis/peoplefinder.git
+git clone https://github.com/nextgis/peoplefinder.git "$HOME/peoplefinder"
 
 # install application
-cd ~
-./env/bin/pip install -e ./peoplefinder/web
+$HOME/env/bin/pip install -e ./peoplefinder/web
+$HOME/env/bin/pip install uwsgi
+cp "$HOME/peoplefinder/web/development.example.ini" "$HOME/peoplefinder/web/development.ini"
 
-# install uwsgi
-./env/bin/pip install uwsgi
+# initialize db
+export PYTHONPATH="${PYTHONPATH}:$HOME/peoplefinder"
+$HOME/env/bin/initialize_peoplefinder_db "$HOME/peoplefinder/web/development.ini"
+
+# setup supervisor
+sudo cp "$HOME/peoplefinder/web/deploy/peoplefinder.conf" "$NGINX_CONF_DIR"
+sudo cp "$HOME/peoplefinder/com_interface/comms_interface.conf" "$SUPERVISOR_CONF_DIR"
+sudo supervisorctl reread
+sudo supervisorctl update
+
+# setup nginx
+sudo cp "$HOME/peoplefinder/web/deploy/peoplefinder" "$NGINX_CONF_DIR/sites-available"
+sudo ln -s "$NGINX_CONF_DIR/sites-available/peoplefinder" "$NGINX_CONF_DIR/sites-enabled"
+sudo rm -f "$NGINX_CONF_DIR/sites-enabled/default"
+sudo service nginx restart
