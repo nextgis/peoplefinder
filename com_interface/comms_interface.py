@@ -8,12 +8,12 @@ import multiprocessing
 from multiprocessing.managers import BaseManager
 import transaction
 
-from model.models import bind_engin, Measure, DBSession
 import logging_utils
-from meas_json_client import MeasJsonListenerProcess
-# import xmlrpc_server
-# import osmo_nitb_utils
+from model.models import get_session, Measure, Subscriber, Sms
 
+from meas_json_client import MeasJsonListenerProcess
+from osmo_nitb_utils import VTYClient
+from xmlrpc_server import XMLRPCProcess
 
 default_config_file = os.path.join(os.getcwd(), "config.ini")
 
@@ -22,66 +22,20 @@ wellcome_message = "You are connected to a mobile search and rescue team. \
                     Your temporary phone number is %s"
 
 
-# Write measurements to DB.
-# Cache last measurement time for imsi.
-class MeasurementsModel(object):
-    def __init__(self, pf_db_connection_string):
-        self._last_measurements = {}
-
-        bind_engin(pf_db_connection_string)
-
-        self.logger = logging_utils.get_logger("MeasurementsModel")
-
-    def add_measurement(self, meas):
-        distance = self.__calculate_distance(long(meas['meas_rep']['L1_TA']))
-
-        with transaction.manager:
-            obj = Measure(imsi=meas['imsi'],
-                          timestamp=datetime.datetime.fromtimestamp(meas['time']),
-                          timing_advance=meas['meas_rep']['L1_TA'],
-                          distance=distance,
-                          phone_number="xxx xxx xx xx",
-                          gps_lat=0.0,
-                          gps_lon=0.0,
-                          )
-
-            DBSession.add(obj)
-
-        self._last_measurements[meas['imsi']] = meas['time']
-
-    def __repr__(self):
-        return repr(self._last_measurements.keys())
-
-    def __len__(self):
-        return len(self._last_measurements)
-
-    def __contains__(self, imsi):
-        # return imsi in self._last_measurements
-        if DBSession.query(Measure).filter(Measure.imsi == imsi).count() > 0:
-            return True
-
-        return False
-
-    def __unicode__(self):
-        return unicode(repr(self._last_measurements.keys()))
-
-    def __calculate_distance(self, ta, te=1.0):
-        return 0.001 * ta * 535
-
-
 # Read queue measurements.
 # Add measurement in MeasurementsModel.
 # Send welcome message for new imsi.
 class MeasHandler(multiprocessing.Process):
-    def __init__(self, queue_measurement, pf_db_url):
+    def __init__(self, queue_measurement, pf_db_connection_string, hlr_db_connection_string):
         self.queue_measurement = queue_measurement
 
         super(MeasHandler, self).__init__()
-
-        self.__pf_db_url = pf_db_url
         self.__time_to_shutdown = multiprocessing.Event()
-        # gc.disable()
-        # gc.set_debug(gc.DEBUG_LEAK)
+
+        self._pf_db_connection_string = pf_db_connection_string
+        self._hlr_db_connection_string = hlr_db_connection_string
+
+        self._vty_client = None
 
     def shutdown(self):
         self.logger.debug("Shutdown initiated")
@@ -89,49 +43,86 @@ class MeasHandler(multiprocessing.Process):
 
     def run(self):
         self.logger = logging_utils.get_logger("MeasHandler")
-        # self._vty_client = osmo_nitb_utils.VTYClient("localhost", 4242, 2)
-        self._mm = MeasurementsModel(self.__pf_db_url)
 
+        self.pf_session = get_session(self._pf_db_connection_string)
+        self.hlr_session = get_session(self._hlr_db_connection_string)
+
+        self.try_to_create_vty_client()
+
+        self.start_loop()
+
+    def try_to_create_vty_client(self):
+        host = 'localhost'
+        port = 4242
+        timeout = 5
         try:
-            while not self.__time_to_shutdown.is_set():
-                meas = self.queue_measurement.get()
-                if meas is not None:
-                    self.process_measure(meas)
-                else:
-                    time.sleep(0.1)
-        except KeyboardInterrupt:
-            self.logger.debug("Catch KeyboardInterrupt!")
-        finally:
-            self.logger.debug("Process STOPED!")
+            self.logger.info("Try to create vty client; host: {0}, port: {1}, timeout: {2}".format(host, port, timeout))
+            self._vty_client = VTYClient(host, port, timeout)
+            self.logger.info("Vty client created!")
+        except ValueError as err:
+            self.logger.error("Failed to create vty client: {0}".format(err))
+            self._vty_client = None
 
-        # try:
-        #     if self.tracking_queue_measurement.qsize() > 0:
-        #         meas = self.tracking_queue_measurement.get()
-        #         self.process_measure(meas)
-        #     elif self.queue_measurement.qsize() > 0:
-        #         meas = self.queue_measurement.get()
-        #         self.process_measure(meas)
-        #     else:
-        #         time.sleep(0.1)
-        # except (KeyboardInterrupt, SystemExit):
-        #     raise
-        # except EOFError:
-        #     break
-        # except:
-        #     traceback.print_exc(file=sys.stderr)
+    def start_loop(self):
+        while not self.__time_to_shutdown.is_set():
+            if self._vty_client is None:
+                self.try_to_create_vty_client()
+                time.sleep(1)
+                continue
+
+            meas = self.queue_measurement.get()
+            if meas is not None:
+                self.process_measure(meas)
+            else:
+                time.sleep(0.1)
 
     def process_measure(self, meas):
         self.logger.info("Process meas: IMSI {0}".format(meas['imsi']))
 
         imsi = meas['imsi']
-        if imsi not in self._mm:
-            self._mm.add_measurement(meas)
-            self.logger.info("Detect new IMSI. Send welcome message.")
-            # self._vty_client.send_SMS(imsi, wellcome_message)
 
-        else:
-            self._mm.add_measurement(meas)
+        extensions = self.hlr_session.query(Subscriber.extension).filter(Subscriber.imsi == imsi).all()
+        if len(extensions) != 1:
+            self.logger.error("HLR struct ERROR imsi {0} not one".format(imsi))
+            return
+        extension = extensions[0][0]
+
+        # sms_comms = self.hlr_session.query(Sms.text).filter(
+        #     ((Sms.src_addr == extension) & (Sms.dest_addr == "10001")) |
+        #     ((Sms.src_addr == "10001") & (Sms.dest_addr == extension))
+        # ).all()
+
+        # self.logger.info("sms_comms: {0}".format(sms_comms))
+
+        if self.is_imsi_already_detected(imsi):
             self.logger.info("IMSI already detected.")
+        else:
+            self.logger.info("Detect new IMSI. Send welcome message.")
+            self._vty_client.send_sms(imsi, wellcome_message % extension)
+
+        self.save_measure_to_db(meas, extension)
+
+    def is_imsi_already_detected(self, imsi):
+        if self.pf_session.query(Measure).filter(Measure.imsi == imsi).count() > 0:
+            return True
+        return False
+
+    def save_measure_to_db(self, meas, extension):
+        distance = self.__calculate_distance(long(meas['meas_rep']['L1_TA']))
+
+        with transaction.manager:
+            obj = Measure(imsi=meas['imsi'],
+                          timestamp=datetime.datetime.fromtimestamp(meas['time']),
+                          timing_advance=meas['meas_rep']['L1_TA'],
+                          distance=distance,
+                          phone_number=extension,
+                          gps_lat=0.0,
+                          gps_lon=0.0,
+                          )
+            self.pf_session.add(obj)
+
+    def __calculate_distance(self, ta, te=1.0):
+        return ta * 553 + 553
 
 
 class MeasurementQueue(object):
@@ -209,8 +200,13 @@ if __name__ == "__main__":
             '..',
             'storage',
             'pf.sqlite'))
+    logger.info("pf db sqlite path: {0}".format(pf_db_conn_str))
 
-    logger.info("pf.sqlite path: {0}".format(pf_db_conn_str))
+    hlr_db_path = "/etc/osmocom/hlr.sqlite3"
+    if not os.path.exists(hlr_db_path):
+        hlr_db_path = os.path.join(os.getcwd(), "hlr.sqlite3")
+    hlr_db_conn_str = "sqlite:///{0}".format(hlr_db_path)
+    logger.info("hlr db sqlite path: {0}".format(hlr_db_conn_str))
 
     # Init shared objects ====================================================
     manager = MeasurementQueueManager()
@@ -219,13 +215,13 @@ if __name__ == "__main__":
 
     # Init processes =========================================================
     logger.info("Init meas heandler writer")
-    meas_handler = MeasHandler(queue_measurement, pf_db_conn_str)
+    meas_handler = MeasHandler(queue_measurement, pf_db_conn_str, hlr_db_conn_str)
 
     logger.info("Init meas_json listener")
     meas_json_listener = MeasJsonListenerProcess(queue_measurement, args.test_mode)
 
-    # logger.info("Init xml-rpc server")
-    # requsets_server = xmlrpc_server.XMLRPCProcess()
+    logger.info("Init xml-rpc server")
+    requsets_server = XMLRPCProcess()
 
     # Start processes ========================================================
     meas_handler.start()
@@ -236,9 +232,9 @@ if __name__ == "__main__":
     logger.info("meas_json listener STARTED with pid: {0}".format(
         meas_json_listener.pid))
 
-    # requsets_server.start()
-    # logger.info("XML-RPC server STARTED with pid: {0}".format(
-    #     requsets_server.pid))
+    requsets_server.start()
+    logger.info("XML-RPC server STARTED with pid: {0}".format(
+        requsets_server.pid))
 
     # Queue statistic ========================================================
     try:
@@ -256,8 +252,11 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         logger.info("KeyboardInterrupt")
 
-        # requsets_server.join()
+        requsets_server.terminate()
+        requsets_server.join()
+        meas_json_listener.terminate()
         meas_json_listener.join()
+        meas_handler.terminate()
         meas_handler.join()
-
+        manager.shutdown()
         manager.join()

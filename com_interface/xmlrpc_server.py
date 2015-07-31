@@ -15,7 +15,7 @@ class XMLRPCProcess(multiprocessing.Process):
         super(XMLRPCProcess, self).__init__()
 
     def run(self):
-        self.logger = logging_utils.getLogger("XMLRPCProcess")
+        self.logger = logging_utils.get_logger("XMLRPCProcess")
 
         # Create server
         server = SimpleXMLRPCServer(("localhost", 8123),
@@ -23,8 +23,12 @@ class XMLRPCProcess(multiprocessing.Process):
         server.register_introspection_functions()
 
         server.register_function(self.send_sms)
+        server.register_function(self.get_peoplefinder_number)
 
         server.serve_forever()
+
+    def get_peoplefinder_number(self):
+        return "10001"
 
     def send_sms(self, msg):
         self.logger.info("Process send sms command: %s" % msg)

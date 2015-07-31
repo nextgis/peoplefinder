@@ -11,14 +11,15 @@ def get_logger(name, level=logging.DEBUG):
     logger.setLevel(level)
 
     formatter_verbose = logging.Formatter('%(levelname)s - ' +
-                                          '%(name)s - ' +
                                           '%(asctime)s ' +
+                                          '%(name)s - ' +
                                           '%(module)s ' +
                                           '%(process)d ' +
                                           '%(thread)d ' +
                                           '%(message)s')
 
-    formatter_simple = logging.Formatter('%(levelname)s - ' +
+    formatter_simple = logging.Formatter('%(levelname)s\t- ' +
+                                         '%(asctime)s - ' +
                                          '%(name)s - ' +
                                          '%(message)s')
 

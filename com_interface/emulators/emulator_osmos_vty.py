@@ -1,16 +1,20 @@
 # -*- coding: utf-8 -*-
 import SocketServer
-import socket
 import time
+import sys
+
 
 class MyTCPHandler(SocketServer.BaseRequestHandler):
 
     def setup(self):
         print("Cient {0} connected.".format(self.client_address[0]))
+        self.request.sendall("This is emulator of OpenBSC VTY.OpenBSC>")
 
     def handle(self):
         # self.request is the TCP socket connected to the client
         while True:
+            print self.request.recv(1024)
+            self.request.sendall("This is emulator of OpenBSC VTY.OpenBSC>")
             time.sleep(1)
 
     def finish(self):

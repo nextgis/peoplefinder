@@ -2,6 +2,7 @@ import os
 import subprocess
 import multiprocessing
 import json
+import time
 
 import logging_utils
 
@@ -17,6 +18,7 @@ class MeasJsonListenerProcess(multiprocessing.Process):
 
         self.__time_to_shutdown = multiprocessing.Event()
         self.__test_mode = test_mode
+        self.__p = None
 
     def shutdown(self):
         self.logger.debug("Shutdown initiated")
@@ -24,29 +26,43 @@ class MeasJsonListenerProcess(multiprocessing.Process):
 
     def run(self):
         self.logger = logging_utils.get_logger("MeasJsonListenerProcess")
+        self.try_to_create_meas_json_process()
+        self.start_loop()
 
-        self.logger.info("MeasJsonListenerProcess run START")
-
+    def try_to_create_meas_json_process(self):
         if self.__test_mode:
             cmd = ['python', '-u', os.path.join(os.path.dirname(__file__), u"emulators", u"emulator_meas_json.py")]
         else:
-            cmd = ["stdbuf", "-oL", 'meas_json']
-
-        proc = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
+            cmd = ['stdbuf', '-oL', 'meas_json']
 
         try:
-            while not self.__time_to_shutdown.is_set():
-                line = proc.stdout.readline()
-                self.logger.debug("Received message:\n {0}".format(line))
-                self.process_package(line)
-        except KeyboardInterrupt:
-            self.logger.debug("Catch KeyboardInterrupt!")
-        finally:
-            self.logger.debug("Process STOPED!")
+            self.logger.info("Try to create process: {0}".format(" ".join(cmd)))
+            self.__p = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            self.logger.info("Process created!")
+        except:
+            self.logger.error("Failed to create process")
+            self.__p = None
+
+    def start_loop(self):
+        while not self.__time_to_shutdown.is_set():
+            if self.__p is None:
+                self.try_to_create_meas_json_process()
+                time.sleep(1)
+                continue
+
+            if self.__p.poll() is not None:
+                self.logger.error("Process terminated!")
+                self.try_to_create_meas_json_process()
+                time.sleep(1)
+                continue
+
+            line = self.__p.stdout.readline()
+            self.logger.debug("Received message:\n {0}".format(line))
+            self.process_package(line)
 
     def process_package(self, data_str):
         try:

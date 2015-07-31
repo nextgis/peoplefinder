@@ -28,13 +28,15 @@ data = """
       },
       "NEIGH" : []
    },
-   "imsi" : "%d"
+   "imsi" : "%s"
 }
 """
 
 if __name__ == "__main__":
-    i = 0
+    # for i in range(0, 5):
+    #     print data.replace('\n', '') % (long(time.time()), str(random.randint(10, 99))
+    #     time.sleep(1)
 
-    while True:
-        print data.replace('\n', '') % (long(time.time()), random.randint(10, 99))
+    for imsi in ['250026686759664', '250015890007249', '250993117364821', '250018520598185', '250018527269573', '250026606991248', '250026685233027', '250993192734211', '250997102433501']:
+        print data.replace('\n', '') % (long(time.time()), imsi)
         time.sleep(1)
