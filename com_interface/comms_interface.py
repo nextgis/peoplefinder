@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import sys
 import argparse
 import ConfigParser
 import time
@@ -9,13 +10,13 @@ from multiprocessing.managers import BaseManager
 import transaction
 
 import logging_utils
-from model.models import get_session, Measure, Subscriber, Sms
+from model.models import get_session, Measure, Subscriber
 
 from meas_json_client import MeasJsonListenerProcess
 from osmo_nitb_utils import VTYClient
 from xmlrpc_server import XMLRPCProcess
 
-default_config_file = os.path.join(os.getcwd(), "config.ini")
+default_config_file = os.path.join(os.path.dirname(__file__), "config.ini")
 
 wellcome_message = "You are connected to a mobile search and rescue team. \
                     Please SMS to 10001 to communicate. \
@@ -26,16 +27,18 @@ wellcome_message = "You are connected to a mobile search and rescue team. \
 # Add measurement in MeasurementsModel.
 # Send welcome message for new imsi.
 class MeasHandler(multiprocessing.Process):
-    def __init__(self, queue_measurement, pf_db_connection_string, hlr_db_connection_string):
+    def __init__(self, configuration, queue_measurement, pf_db_connection_string, hlr_db_connection_string):
         self.queue_measurement = queue_measurement
-
         super(MeasHandler, self).__init__()
         self.__time_to_shutdown = multiprocessing.Event()
 
         self._pf_db_connection_string = pf_db_connection_string
         self._hlr_db_connection_string = hlr_db_connection_string
 
-        self._vty_client = None
+        try:
+            self._vty_client = VTYClient(configuration)
+        except ValueError as err:
+            raise err
 
     def shutdown(self):
         self.logger.debug("Shutdown initiated")
@@ -47,30 +50,24 @@ class MeasHandler(multiprocessing.Process):
         self.pf_session = get_session(self._pf_db_connection_string)
         self.hlr_session = get_session(self._hlr_db_connection_string)
 
-        self.try_to_create_vty_client()
+        self.try_to_connect_to_vty()
 
         self.start_loop()
 
-    def try_to_create_vty_client(self):
-        host = 'localhost'
-        port = 4242
-        timeout = 5
-        try:
-            self.logger.info("Try to create vty client; host: {0}, port: {1}, timeout: {2}".format(host, port, timeout))
-            self._vty_client = VTYClient(host, port, timeout)
-            self.logger.info("Vty client created!")
-        except ValueError as err:
-            self.logger.error("Failed to create vty client: {0}".format(err))
-            self._vty_client = None
+    def try_to_connect_to_vty(self):
+        self.logger.info("Try to connect to vty...")
+        if self._vty_client.try_connect():
+            self.logger.info("Success connect to vty!")
+        else:
+            self.logger.info("Fail to connect to vty!")
 
     def start_loop(self):
         while not self.__time_to_shutdown.is_set():
-            if self._vty_client is None:
-                self.try_to_create_vty_client()
-                time.sleep(1)
-                continue
 
-            meas = self.queue_measurement.get()
+            if self._vty_client.is_active() is False:
+                self.try_to_connect_to_vty()
+
+            meas = self.queue_measurement.get_measurement()
             if meas is not None:
                 self.process_measure(meas)
             else:
@@ -98,7 +95,8 @@ class MeasHandler(multiprocessing.Process):
             self.logger.info("IMSI already detected.")
         else:
             self.logger.info("Detect new IMSI. Send welcome message.")
-            self._vty_client.send_sms(imsi, wellcome_message % extension)
+            if not self._vty_client.send_sms(imsi, wellcome_message % extension):
+                self.logger.error("Welcome message not send.")
 
         self.save_measure_to_db(meas, extension)
 
@@ -125,56 +123,68 @@ class MeasHandler(multiprocessing.Process):
         return ta * 553 + 553
 
 
-class MeasurementQueue(object):
+class CommsModel(object):
     def __init__(self):
         self.objects = {}
         self.queue = []
         self.high_priority_objects_count = 0
         self.rlock = multiprocessing.RLock()
-        self.__prior_imsi = None
 
-    def set_prior_imsi(self, imsi):
-        self.__prior_imsi = imsi
+        self.__tracking_imsi = None
 
-    def clear_prior_imsi(self):
-        self.__prior_imsi = None
+        self.logger = logging_utils.get_logger("CommsModel")
 
-    def put(self, obj):
+    def set_tracking_imsi(self, imsi):
+        self.logger.info("set_tracking_imsi - START".format(imsi))
+        self.__tracking_imsi = imsi
+        self.logger.info("set_tracking_imsi - FINISH".format(imsi))
+
+    def get_tracking_imsi(self):
+        return self.__tracking_imsi
+
+    def clear_tracking_imsi(self):
+        self.__tracking_imsi = None
+
+    def put_measurement(self, obj):
         with self.rlock:
             imsi = obj['imsi']
 
-            with_priority = self.__prior_imsi == imsi
+            with_priority = self.__tracking_imsi == imsi
 
             if imsi in self.queue:
                 cur_index = self.queue.index(imsi)
                 cur_with_prior = cur_index <= self.high_priority_objects_count
 
-                if cur_with_prior is False and with_priority is True:
+                if (cur_with_prior is False) and (with_priority is True):
                     self.queue.remove(imsi)
-                    self.queue.insert(obj, self.high_priority_objects_count)
+                    self.queue.insert(self.high_priority_objects_count, obj)
+                    self.high_priority_objects_count += 1
             else:
                 if with_priority is True:
-                    self.queue.insert(obj, self.high_priority_objects_count)
+                    self.queue.insert(self.high_priority_objects_count, obj)
+                    self.high_priority_objects_count += 1
                 else:
                     self.queue.append(obj)
 
             self.objects[imsi] = obj
 
-    def get(self):
+    def get_measurement(self):
         with self.rlock:
             if len(self.queue) > 0:
                 return self.queue.pop(0)
+                if self.high_priority_objects_count > 0:
+                    self.high_priority_objects_count -= 1
             else:
                 return None
 
-    def qsize(self):
+    def number_of_measurements_in_queue(self):
         with self.rlock:
             return len(self.queue)
 
 
-class MeasurementQueueManager(BaseManager):
+class CommsModelManager(BaseManager):
     pass
-MeasurementQueueManager.register('MeasurementQueue', MeasurementQueue)
+CommsModelManager.register('CommsModel', CommsModel)
 
 
 if __name__ == "__main__":
@@ -202,28 +212,44 @@ if __name__ == "__main__":
             'pf.sqlite'))
     logger.info("pf db sqlite path: {0}".format(pf_db_conn_str))
 
-    hlr_db_path = "/etc/osmocom/hlr.sqlite3"
+    try:
+        hlr_db_path = configuration.get('osmo_nitb', 'db')
+    except ConfigParser.Error as err:
+        logger.warning("Identification HLR fail: {0}".format(err.message))
+
     if not os.path.exists(hlr_db_path):
         hlr_db_path = os.path.join(os.getcwd(), "hlr.sqlite3")
     hlr_db_conn_str = "sqlite:///{0}".format(hlr_db_path)
-    logger.info("hlr db sqlite path: {0}".format(hlr_db_conn_str))
+
+    logger.info("HLR db sqlite path: {0}".format(hlr_db_conn_str))
+
+    # Events =================================================================
 
     # Init shared objects ====================================================
-    manager = MeasurementQueueManager()
+    manager = CommsModelManager()
     manager.start()
-    queue_measurement = manager.MeasurementQueue()
+    comms_model = manager.CommsModel()
 
     # Init processes =========================================================
     logger.info("Init meas heandler writer")
-    meas_handler = MeasHandler(queue_measurement, pf_db_conn_str, hlr_db_conn_str)
+    try:
+        meas_handler = MeasHandler(configuration, comms_model, pf_db_conn_str, hlr_db_conn_str)
+    except ValueError as err:
+        logger.error("Cann't init measurement handler process server: {0}".format(err.message))
+        sys.exit(1)
 
     logger.info("Init meas_json listener")
-    meas_json_listener = MeasJsonListenerProcess(queue_measurement, args.test_mode)
+    meas_json_listener = MeasJsonListenerProcess(comms_model, args.test_mode)
 
     logger.info("Init xml-rpc server")
-    requsets_server = XMLRPCProcess()
+    try:
+        requsets_server = XMLRPCProcess(configuration, comms_model)
+    except ValueError as err:
+        logger.error("Cann't init xml-rpc server: {0}".format(err.message))
+        sys.exit(1)
 
     # Start processes ========================================================
+
     meas_handler.start()
     logger.info("Meas heandler writer STARTED with pid: {0}".format(
         meas_handler.pid))
@@ -240,11 +266,11 @@ if __name__ == "__main__":
     try:
         queue_measurement_size_prev = 0
         while True:
-            queue_measurement_size = queue_measurement.qsize()
+            queue_measurement_size = comms_model.number_of_measurements_in_queue()
             if queue_measurement_size != queue_measurement_size_prev:
                 queue_measurement_size_prev = queue_measurement_size
                 logger.info(
-                    "queue_measurement size change: {0}".format(
+                    "Number of measurements in queue change: {0}".format(
                         queue_measurement_size))
 
             time.sleep(1)
