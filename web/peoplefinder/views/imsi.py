@@ -37,3 +37,35 @@ def get_imsi_list(request):
         'Result': 'OK',
         'Records': result
     }
+
+
+@view_config(route_name='get_imsi_messages', renderer='json')
+def get_imsi_messages(request):
+    imsi = request.matchdict['imsi']
+    timestamp_begin = request.GET['timestamp_begin'] if 'timestamp_begin' in request.GET else None
+    timestamp_end = request.GET['timestamp_end']
+
+    types = ['from', 'to']
+
+    result = {
+        'imsi': imsi,
+        'sms': []
+    }
+
+    import random
+    import string
+
+    if timestamp_begin:
+        sms_count = random.randrange(0, 2)
+    else:
+        sms_count = random.randrange(1, 10)
+
+    c = 0
+    while c < sms_count:
+        result['sms'].append({
+            'type': random.choice(types),
+            'text': "".join([random.choice(string.letters) for i in xrange(random.randrange(15, 40))])
+        })
+        c += 1
+
+    return result
