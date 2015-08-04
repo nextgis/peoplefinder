@@ -27,7 +27,7 @@ div.jtable-busy-panel-background.jtable-busy-panel-background-invisible {
     table-layout: fixed;
     border-collapse: collapse;
     border-spacing: 0;
-    border: solid 1px #e5e5e5;
+    border: 1px solid #ccc;
 }
 
 .jtable th {
@@ -91,6 +91,10 @@ div.jtable-busy-panel-background.jtable-busy-panel-background-invisible {
     display: block;
 }
 
-/*.jtable tbody tr:nth-child(even) {*/
-/*background-color: #dddddd;*/
-/*}*/
+.jtable .jtable-data-row.jtable-row-even td {
+    background-color: #F9F9F9;
+}
+
+.jtable .jtable-data-row.jtable-row-selected td {
+    background-color: #cccccc;
+}
