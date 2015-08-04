@@ -10,7 +10,7 @@ from multiprocessing.managers import BaseManager
 import transaction
 
 import logging_utils
-from model.models import get_session, Measure, Subscriber
+from model.models import get_session, Measure, Subscriber, Sms
 
 from meas_json_client import MeasJsonListenerProcess
 from osmo_nitb_utils import VTYClient
@@ -114,13 +114,17 @@ class MeasHandler(multiprocessing.Process):
                           timing_advance=meas['meas_rep']['L1_TA'],
                           distance=distance,
                           phone_number=extension,
-                          gps_lat=0.0,
-                          gps_lon=0.0,
+                          gps_lat=55.69452,
+                          gps_lon=37.56702,
                           )
             self.pf_session.add(obj)
 
     def __calculate_distance(self, ta, te=1.0):
         return ta * 553 + 553
+
+    def __is_there_sms_from_to(self, src_addr, dest_addr):
+        nuber_of_sms = self.hlr_session.query(Sms.text).filter(
+            (Sms.src_addr == src_addr) & (Sms.dest_addr == dest_addr)).count()
 
 
 class CommsModel(object):
