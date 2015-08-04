@@ -26,6 +26,11 @@
                 loadingRecords: function (event, data) {
                     console.log(data);
                 },
+                selectionChanged: function (event, data) {
+                    if (pf.viewmodel.trackingStateActive) return;
+                },
+                selecting: true,
+                multiselect: false,
                 sorting: true,
                 fields: {
                     imsi: {
