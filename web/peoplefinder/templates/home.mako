@@ -28,7 +28,7 @@
                 </div>
                 <div class="row">
                     <span class="text-uppercase sub-header">SMS Comms</span>
-                    <textarea id="sms-txta" class="form-control input-sm" rows="9" readonly></textarea>
+                    <textarea id="smsViewer" class="form-control input-sm" rows="9" readonly></textarea>
 
                     <div class="inner-row">
                         <div class="input-group">
