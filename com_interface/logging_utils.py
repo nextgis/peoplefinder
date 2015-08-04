@@ -12,7 +12,7 @@ def get_logger(name, level=logging.DEBUG):
                                          '%(name)s - ' +
                                          '%(message)s')
 
-    clh = logging.StreamHandler()
+    clh = logging.StreamHandler(sys.stdout)
     clh.setLevel(level)
     clh.setFormatter(formatter_simple)
 
