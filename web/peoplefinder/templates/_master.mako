@@ -60,7 +60,8 @@
     % endif
 
 <script>
-    pf.root_url = '${request.application_url}';
+    pf.settings = {};
+    pf.settings.root_url = '${request.application_url}';
 </script>
 
 </body>

@@ -17,7 +17,7 @@
         buildTable: function () {
             pf.view.$imsiTable.jtable({
                 actions: {
-                    listAction: pf.root_url + '/imsi/list'
+                    listAction: pf.settings.root_url + '/imsi/list'
                 },
                 ajaxSettings: {
                     type: 'GET',
