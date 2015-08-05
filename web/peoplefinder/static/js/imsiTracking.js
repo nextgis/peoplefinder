@@ -3,7 +3,7 @@
     $.extend(pf.modules.imsiTracking, {
 
         init: function () {
-            pf.viewmodel.trackingStateActive = false;
+            pf.viewmodel.trackingActive = false;
             this.setDom();
         },
 
