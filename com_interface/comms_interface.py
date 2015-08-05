@@ -10,7 +10,8 @@ from multiprocessing.managers import BaseManager
 import transaction
 
 import logging_utils
-from model.models import get_session, Measure, Subscriber, Sms
+from model.models import bind_session, DBSession, Measure
+from model.hlr import bind_session as bind_hlr_session, HLRDBSession, Subscriber, Sms
 
 from meas_json_client import MeasJsonListenerProcess
 from osmo_nitb_utils import VTYClient
@@ -47,8 +48,11 @@ class MeasHandler(multiprocessing.Process):
     def run(self):
         self.logger = logging_utils.get_logger("MeasHandler")
 
-        self.pf_session = get_session(self._pf_db_connection_string)
-        self.hlr_session = get_session(self._hlr_db_connection_string)
+        bind_session(self._pf_db_connection_string)
+        self.pf_session = DBSession
+
+        bind_hlr_session(self._hlr_db_connection_string)
+        self.hlr_session = HLRDBSession
 
         self.try_to_connect_to_vty()
 
@@ -123,7 +127,7 @@ class MeasHandler(multiprocessing.Process):
         return ta * 553 + 553
 
     def __is_there_sms_from_to(self, src_addr, dest_addr):
-        nuber_of_sms = self.hlr_session.query(Sms.text).filter(
+        self.hlr_session.query(Sms.text).filter(
             (Sms.src_addr == src_addr) & (Sms.dest_addr == dest_addr)).count()
 
 
