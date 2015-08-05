@@ -8,6 +8,11 @@ $(document).ready(function () {
 });
 
 function loadModules() {
+    pf.modules.imsiListObserver.init();
+    pf.modules.selectedImsiObserver.init();
+    pf.modules.smsListObserver.init();
     pf.modules.map.init();
     pf.modules.imsiTable.init();
+    pf.modules.smsViewer.init();
+    pf.modules.imsiTracking.init();
 }
