@@ -51,7 +51,7 @@
                     if (selectedImsi === pf.viewmodel.selectedImsi) {
                         context.updateSmsList(context._timestamp_end);
                     }
-                }, pf.settings.imsi_list_timeout);
+                }, pf.settings.sms_list_timeout);
             });
         }
     });
