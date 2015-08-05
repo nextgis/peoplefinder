@@ -53,6 +53,18 @@ span.logo {
     background-color: #eee;
 }
 
+#smsViewer {
+    min-height: 178px;
+    max-height: 200px;
+    font-size: 14px;
+    padding: 4px;
+    overflow-y: auto;
+}
+
+#smsViewer.inactive {
+    background-color: #F1F1F1;
+}
+
 div.footer {
     font-size: 12px;
     padding: 5px 10px;
