@@ -212,24 +212,40 @@ if __name__ == "__main__":
     logger.info("Comm interface started! pid: {0}".format(os.getpid()))
 
     # Init DB ================================================================
-    pf_db_conn_str = "sqlite:///{0}".format(
-        os.path.join(
-            os.path.dirname(os.path.abspath(__file__)),
-            '..',
-            'storage',
-            'pf.sqlite'))
-    logger.info("pf db sqlite path: {0}".format(pf_db_conn_str))
-
+    pf_db_conn_str = None
     try:
-        hlr_db_path = configuration.get('osmo_nitb', 'db')
+        web_config_file = configuration.get('web_layer', 'config')
+        web_configuration = ConfigParser.ConfigParser()
+        web_configuration.read([web_config_file])
+        pf_db_conn_str = web_configuration.get('app:main', 'sqlalchemy.url')
     except ConfigParser.Error as err:
-        logger.warning("Identification HLR fail: {0}".format(err.message))
+        logger.error("Identification People Finder DB fail: {0}".format(err.message))
+        sys.exit(1)
 
-    if not os.path.exists(hlr_db_path):
-        hlr_db_path = os.path.join(os.getcwd(), "hlr.sqlite3")
-    hlr_db_conn_str = "sqlite:///{0}".format(hlr_db_path)
+    logger.info("pf db sqlite path: {0}".format(pf_db_conn_str))
+    try:
+        bind_session(pf_db_conn_str)
+        DBSession.query(Measure).count()
+    except:
+        logger.error("People finder DB connection err")
+        raise
+
+    hlr_db_conn_str = None
+    try:
+        hlr_db_conn_str = configuration.get('osmo_nitb', 'db')
+    except ConfigParser.Error as err:
+        logger.error("Identification HLR fail: {0}".format(err.message))
+        sys.exit(1)
 
     logger.info("HLR db sqlite path: {0}".format(hlr_db_conn_str))
+    bind_hlr_session(hlr_db_conn_str)
+    try:
+        bind_session(pf_db_conn_str)
+        HLRDBSession.query(Subscriber).count()
+        HLRDBSession.query(Sms).count()
+    except:
+        logger.error("HLR DB connection err")
+        raise
 
     # Events =================================================================
 
