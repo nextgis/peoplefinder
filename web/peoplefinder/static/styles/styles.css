@@ -61,8 +61,16 @@ span.logo {
     overflow-y: auto;
 }
 
-#smsViewer.inactive {
+#smsViewer {
     background-color: #F1F1F1;
+}
+
+#smsViewer div.no-sms {
+    display: none;
+}
+
+#smsViewer.no-sms div.no-sms {
+    display: none;
 }
 
 div.footer {

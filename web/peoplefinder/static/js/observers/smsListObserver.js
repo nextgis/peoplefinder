@@ -44,7 +44,7 @@
                 var sms = result.sms,
                     imsi = result.imsi;
                 $.each(sms, function (i, smsItem) {
-                    var $smsItem = $('<div class"' + smsItem.type + '">' + smsItem.type + ' ' + imsi + ': ' + smsItem.text + '</div>');
+                    var $smsItem = $('<div class="' + smsItem.type + ' sms">' + smsItem.type + ' ' + imsi + ': ' + smsItem.text + '</div>');
                     $smsItem.appendTo(pf.view.$smsViewer);
                 });
                 setTimeout(function () {

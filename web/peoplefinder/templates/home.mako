@@ -28,7 +28,9 @@
                 </div>
                 <div class="row">
                     <span class="text-uppercase sub-header">SMS Comms</span>
-                    <textarea id="smsViewer" class="form-control input-sm" rows="9" readonly></textarea>
+                    <div id="smsViewer" class="form-control input-sm no-sms">
+##                        <div class="no-sms">No SMS history for {IMSI}</div>
+                    </div>
 
                     <div class="inner-row">
                         <div class="input-group">

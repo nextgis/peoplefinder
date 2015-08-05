@@ -11,7 +11,7 @@
         },
 
         clear: function () {
-            pf.view.$smsViewer.html('');
+            pf.view.$smsViewer.find('div.sms').remove();
         }
     });
 }(jQuery, pf));
