@@ -75,5 +75,5 @@ class Sms(Base):
     dest_ton = Column(Integer)
     dest_npi = Column(Integer)
     user_data = Column(LargeBinary)
-    user_data = Column(LargeBinary)
+    header = Column(LargeBinary)
     text = Column(Text)
