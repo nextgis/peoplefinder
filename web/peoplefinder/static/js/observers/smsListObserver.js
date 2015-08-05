@@ -9,7 +9,6 @@
         _timestamp_end: null,
 
         bindEvents: function () {
-            var timeout = pf.settings.imsi_list_timeout;
             pf.subscriber.subscribe('observer/sms/list/activate', function () {
                 this._isActivated = true;
                 this.updateSmsList();
