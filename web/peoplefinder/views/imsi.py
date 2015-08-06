@@ -17,21 +17,26 @@ from model.hlr import (
 
 @view_config(route_name='get_imsi_list', renderer='json')
 def get_imsi_list(request):
+    import random
+    count = random.randrange(1, 20)
+    c = 0
     result = []
 
-    query = DBSession.query(
-        Measure.id,
-        Measure.imsi,
-        func.max(Measure.timestamp).label("last")
-    ).group_by(Measure.imsi).all()
-
-    for measure in query:
-        dtime = datetime.datetime.now() - measure.last
+    while c < count:
+        imsi = random.randrange(43534534534534, 43534534534555)
+        lur = random.randrange(5, 20)
         result.append({
-            'id': measure.id,
-            'imsi': measure.imsi,
-            'last_lur': dtime.total_seconds() // 60
+            'id': c,
+            'imsi': imsi,
+            'last_lur': lur
         })
+        c += 1
+
+    result.append({
+        'id': 25,
+        'imsi': 40000000000000,
+        'last_lur': 3
+    })
 
     if 'jtSorting' in request.GET:
         sorting_params = request.GET['jtSorting'].split(' ')
@@ -80,5 +85,37 @@ def get_imsi_messages(request):
             'type': 'from' if sms.dest_addr == pfnum else 'to',
             'text': sms.text
         })
+
+    return result
+
+
+@view_config(route_name='get_imsi_circles', renderer='json')
+def get_imsi_circles(request):
+    imsi = request.matchdict['imsi']
+    timestamp_begin = request.GET['timestamp_begin'] if 'timestamp_begin' in request.GET else None
+    timestamp_end = request.GET['timestamp_end']
+
+    types = ['from', 'to']
+
+    result = {
+        'imsi': imsi,
+        'circles': []
+    }
+
+    import random
+    import string
+
+    if timestamp_begin:
+        circles_count = random.randrange(0, 2)
+    else:
+        circles_count = random.randrange(1, 10)
+
+    c = 0
+    while c < circles_count:
+        result['circles'].append({
+            'center': [55.69452, 37.56702],
+            'radius': random.randrange(80, 110)
+        })
+        c += 1
 
     return result

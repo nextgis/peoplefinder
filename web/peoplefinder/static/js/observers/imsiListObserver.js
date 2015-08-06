@@ -9,7 +9,6 @@
         },
 
         bindEvents: function () {
-            var timeout = pf.settings.imsi_list_timeout;
             pf.subscriber.subscribe('observer/imsi/list/activate', function () {
                 this.updateIsmiList();
             }, this);

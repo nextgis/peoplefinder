@@ -27,6 +27,7 @@ def main(global_config, **settings):
 
     config.add_route('get_imsi_list', '/imsi/list')
     config.add_route('get_imsi_messages', 'imsi/{imsi}/messages')
+    config.add_route('get_imsi_circles', 'imsi/{imsi}/circles')
 
     get_peoplefinder_number = lambda request: '10001' # TODO: Get from xmlrpc
     config.add_request_method(get_peoplefinder_number, 'peoplefinder_number', reify=True)

@@ -16,7 +16,7 @@ from model.hlr import bind_session as bind_hlr_session, HLRDBSession, Subscriber
 from meas_json_client import MeasJsonListenerProcess
 from osmo_nitb_utils import VTYClient
 from xmlrpc_server import XMLRPCProcess
-
+from gpsd_client import GPSDListenerProcess
 default_config_file = os.path.join(os.path.dirname(__file__), "config.ini")
 
 wellcome_message = "You are connected to a mobile search and rescue team. \
@@ -30,7 +30,7 @@ wellcome_message = "You are connected to a mobile search and rescue team. \
 class MeasHandler(multiprocessing.Process):
     def __init__(self, configuration, queue_measurement, pf_db_connection_string, hlr_db_connection_string):
         self.queue_measurement = queue_measurement
-        super(MeasHandler, self).__init__()
+        super(MeasHandler, self).__init__(name="MeasHandler")
         self.__time_to_shutdown = multiprocessing.Event()
 
         self._pf_db_connection_string = pf_db_connection_string
@@ -48,10 +48,10 @@ class MeasHandler(multiprocessing.Process):
     def run(self):
         self.logger = logging_utils.get_logger("MeasHandler")
 
-        bind_session(self._pf_db_connection_string)
+        #bind_session(self._pf_db_connection_string)
         self.pf_session = DBSession
 
-        bind_hlr_session(self._hlr_db_connection_string)
+        #bind_hlr_session(self._hlr_db_connection_string)
         self.hlr_session = HLRDBSession
 
         self.try_to_connect_to_vty()
@@ -118,9 +118,10 @@ class MeasHandler(multiprocessing.Process):
                           timing_advance=meas['meas_rep']['L1_TA'],
                           distance=distance,
                           phone_number=extension,
-                          gps_lat=55.69452,
-                          gps_lon=37.56702,
+                          gps_lat=meas['lat'],
+                          gps_lon=meas['lon'],
                           )
+            self.logger.info("Add measure: imsi={0}, ta={1}, lat={2}, lon={3}".format(meas['imsi'], meas['meas_rep']['L1_TA'], meas['lat'], meas['lon']))
             self.pf_session.add(obj)
 
     def __calculate_distance(self, ta, te=1.0):
@@ -131,6 +132,34 @@ class MeasHandler(multiprocessing.Process):
             (Sms.src_addr == src_addr) & (Sms.dest_addr == dest_addr)).count()
 
 
+class GPSCoordinatesCollection(object):
+    def __init__(self):
+        self.__gps_times = []
+        self.__gps_coordinates = []
+        self.__count = 0
+        self.__max_for_save = 100
+
+        self.logger = logging_utils.get_logger("GPSCoordinatesCollection")
+
+    def add(self, time, lat, log):
+        if self.__count == self.__max_for_save:
+            self.__gps_times.pop(0)
+            self.__gps_coordinates.pop(0)
+            self.__count -= 1
+
+        self.__gps_times.append(time)
+        self.__gps_coordinates.append((lat, log))
+
+        self.__count += 1
+
+    def get_coordinates(self, time):
+        for index in xrange(0, self.__count):
+            if time <= self.__gps_times[index]:
+                return self.__gps_coordinates[index]
+
+        return self.__gps_coordinates[self.__count - 1]
+
+
 class CommsModel(object):
     def __init__(self):
         self.objects = {}
@@ -139,6 +168,9 @@ class CommsModel(object):
         self.rlock = multiprocessing.RLock()
 
         self.__tracking_imsi = None
+
+        self.__cc = GPSCoordinatesCollection()
+        self.__cc.add(int(time.time()), 0.0, 0.0)
 
         self.logger = logging_utils.get_logger("CommsModel")
 
@@ -157,7 +189,15 @@ class CommsModel(object):
         with self.rlock:
             imsi = obj['imsi']
 
+            lat, lon = self.__cc.get_coordinates(obj['time'])
+            obj['lat'] = lat
+            obj['lon'] = lon
+
+            self.logger.debug("put_measurement: imsi={0} lat={1}, lon={2}".format(imsi, lat, lon))
+
             with_priority = self.__tracking_imsi == imsi
+
+            self.logger.debug("put_measurement: with_priority={0}".format(with_priority))
 
             if imsi in self.queue:
                 cur_index = self.queue.index(imsi)
@@ -188,6 +228,9 @@ class CommsModel(object):
     def number_of_measurements_in_queue(self):
         with self.rlock:
             return len(self.queue)
+
+    def add_gps_meas(self, time, lat, lon):
+        self.__cc.add(time, lat, lon)
 
 
 class CommsModelManager(BaseManager):
@@ -238,9 +281,8 @@ if __name__ == "__main__":
         sys.exit(1)
 
     logger.info("HLR db sqlite path: {0}".format(hlr_db_conn_str))
-    bind_hlr_session(hlr_db_conn_str)
     try:
-        bind_session(pf_db_conn_str)
+        bind_hlr_session(hlr_db_conn_str)
         HLRDBSession.query(Subscriber).count()
         HLRDBSession.query(Sms).count()
     except:
@@ -255,6 +297,9 @@ if __name__ == "__main__":
     comms_model = manager.CommsModel()
 
     # Init processes =========================================================
+    logger.info("Init gpsd listener")
+    gpsd_listener = GPSDListenerProcess(comms_model)
+
     logger.info("Init meas heandler writer")
     try:
         meas_handler = MeasHandler(configuration, comms_model, pf_db_conn_str, hlr_db_conn_str)
@@ -273,6 +318,9 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # Start processes ========================================================
+    gpsd_listener.start()
+    logger.info("GPSD listener STARTED with pid: {0}".format(
+        gpsd_listener.pid))
 
     meas_handler.start()
     logger.info("Meas heandler writer STARTED with pid: {0}".format(

@@ -63,6 +63,7 @@
     pf.settings = {};
     pf.settings.root_url = '${request.application_url}';
     pf.settings.imsi_list_timeout = 3000;
+    pf.settings.sms_list_timeout = 3000;
 </script>
 
 </body>

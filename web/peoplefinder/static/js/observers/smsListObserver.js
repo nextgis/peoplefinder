@@ -9,7 +9,6 @@
         _timestamp_end: null,
 
         bindEvents: function () {
-            var timeout = pf.settings.imsi_list_timeout;
             pf.subscriber.subscribe('observer/sms/list/activate', function () {
                 this._isActivated = true;
                 this.updateSmsList();
@@ -51,7 +50,7 @@
                     if (selectedImsi === pf.viewmodel.selectedImsi) {
                         context.updateSmsList(context._timestamp_end);
                     }
-                }, pf.settings.imsi_list_timeout);
+                }, pf.settings.sms_list_timeout);
             });
         }
     });
