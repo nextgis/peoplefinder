@@ -97,8 +97,8 @@ def get_imsi_circles(request):
         Measure.gps_lon,
         Measure.timestamp
     ).filter(
-        Measure.imsi == imsi &
-        Measure.timestamp <= datetime.datetime.fromtimestamp(float(timestamp_end)/1000)
+        (Measure.imsi == imsi) &
+        (Measure.timestamp <= datetime.datetime.fromtimestamp(float(timestamp_end)/1000))
     )
 
     if timestamp_begin is not None:
@@ -114,8 +114,8 @@ def get_imsi_circles(request):
     for circle in query.all():
         result['circles'].append({
             'center': [
-                circle.gls_lon,
-                circle.gps_lat
+                circle.gps_lat,
+                circle.gps_lon
             ],
             'radius': circle.distance,
             'ts': time.mktime(circle.timestamp.timetuple())
