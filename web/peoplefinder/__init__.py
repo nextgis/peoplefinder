@@ -20,6 +20,7 @@ def main(global_config, **settings):
 
     config.add_route('get_imsi_list', '/imsi/list')
     config.add_route('get_imsi_messages', 'imsi/{imsi}/messages')
+    config.add_route('get_imsi_circles', 'imsi/{imsi}/circles')
 
     config.scan()
     return config.make_wsgi_app()
