@@ -48,10 +48,10 @@ class MeasHandler(multiprocessing.Process):
     def run(self):
         self.logger = logging_utils.get_logger("MeasHandler")
 
-        bind_session(self._pf_db_connection_string)
+        #bind_session(self._pf_db_connection_string)
         self.pf_session = DBSession
 
-        bind_hlr_session(self._hlr_db_connection_string)
+        #bind_hlr_session(self._hlr_db_connection_string)
         self.hlr_session = HLRDBSession
 
         self.try_to_connect_to_vty()
@@ -145,6 +145,7 @@ class GPSCoordinatesCollection(object):
         if self.__count == self.__max_for_save:
             self.__gps_times.pop(0)
             self.__gps_coordinates.pop(0)
+            self.__count -= 1
 
         self.__gps_times.append(time)
         self.__gps_coordinates.append((lat, log))
@@ -192,7 +193,11 @@ class CommsModel(object):
             obj['lat'] = lat
             obj['lon'] = lon
 
+            self.logger.debug("put_measurement: imsi={0} lat={1}, lon={2}".format(imsi, lat, lon))
+
             with_priority = self.__tracking_imsi == imsi
+
+            self.logger.debug("put_measurement: with_priority={0}".format(with_priority))
 
             if imsi in self.queue:
                 cur_index = self.queue.index(imsi)
@@ -276,9 +281,8 @@ if __name__ == "__main__":
         sys.exit(1)
 
     logger.info("HLR db sqlite path: {0}".format(hlr_db_conn_str))
-    bind_hlr_session(hlr_db_conn_str)
     try:
-        bind_session(pf_db_conn_str)
+        bind_hlr_session(hlr_db_conn_str)
         HLRDBSession.query(Subscriber).count()
         HLRDBSession.query(Sms).count()
     except:

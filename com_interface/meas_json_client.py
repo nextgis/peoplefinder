@@ -45,7 +45,7 @@ class MeasJsonListenerProcess(multiprocessing.Process):
             )
             self.logger.info("Process created!")
         except:
-            self.logger.error("Failed to create process")
+            self.logger.error("Process creation failed!")
             self.__p = None
 
     def start_loop(self):
@@ -73,6 +73,10 @@ class MeasJsonListenerProcess(multiprocessing.Process):
                 self.logger.error("Parsing package error. " +
                                   "IMSI not found. \n" +
                                   "Data:{0}".format(data_str))
+                return
+
+            if data["meas_rep"]["NR"] != 0:
+                self.logger.warning("Measure filtered. Because NR != 0.")
                 return
 
             self.queue_measurement.put_measurement(data)
