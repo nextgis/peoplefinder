@@ -15,4 +15,5 @@ function loadModules() {
     pf.modules.imsiTable.init();
     pf.modules.smsViewer.init();
     pf.modules.imsiTracking.init();
+    pf.modules.trackingObserver.init();
 }
