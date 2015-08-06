@@ -114,8 +114,8 @@ def get_imsi_circles(request):
     for circle in query.all():
         result['circles'].append({
             'center': [
-                circle.gps_lon,
-                circle.gps_lat
+                circle.gps_lat,
+                circle.gps_lon
             ],
             'radius': circle.distance,
             'ts': time.mktime(circle.timestamp.timetuple())
