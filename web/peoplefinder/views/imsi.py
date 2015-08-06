@@ -1,6 +1,7 @@
 from pyramid.view import view_config
 from sqlalchemy import func
 
+import time
 import datetime
 
 from model.models import (
@@ -87,30 +88,37 @@ def get_imsi_messages(request):
 @view_config(route_name='get_imsi_circles', renderer='json')
 def get_imsi_circles(request):
     imsi = request.matchdict['imsi']
-    timestamp_begin = request.GET['timestamp_begin'] if 'timestamp_begin' in request.GET else None
-    timestamp_end = request.GET['timestamp_end']
+    timestamp_begin = request.GET.get('timestamp_begin')
+    timestamp_end = request.GET.get('timestamp_end')
 
-    types = ['from', 'to']
+    query = DBSession.query(
+        Measure.distance,
+        Measure.gps_lat,
+        Measure.gps_lon,
+        Measure.timestamp
+    ).filter(
+        Measure.imsi == imsi &
+        Measure.timestamp <= datetime.datetime.fromtimestamp(float(timestamp_end)/1000)
+    )
+
+    if timestamp_begin is not None:
+        query = query.filter(
+            Measure.timestamp >= (float(timestamp_begin)/1000)
+        )
 
     result = {
         'imsi': imsi,
         'circles': []
     }
 
-    import random
-    import string
-
-    if timestamp_begin:
-        circles_count = random.randrange(0, 2)
-    else:
-        circles_count = random.randrange(1, 10)
-
-    c = 0
-    while c < circles_count:
+    for circle in query.all():
         result['circles'].append({
-            'center': [55.69452, 37.56702],
-            'radius': random.randrange(80, 110)
+            'center': [
+                circle.gls_lon,
+                circle.gps_lat
+            ],
+            'radius': circle.distance,
+            'ts': time.mktime(circle.timestamp.timetuple())
         })
-        c += 1
 
     return result
