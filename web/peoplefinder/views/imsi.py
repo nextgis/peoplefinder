@@ -52,7 +52,7 @@ def get_imsi_messages(request):
     timestamp_begin = request.GET.get('timestamp_begin')
     timestamp_end = request.GET.get('timestamp_end')
 
-    pfnum = request.peoplefinder_number
+    pfnum = "10001"
     query = HLRDBSession.query(
         Sms.text,
         Sms.src_addr,
@@ -68,7 +68,7 @@ def get_imsi_messages(request):
 
     if timestamp_begin is not None:
         query = query.filter(
-            Sms.created >= (float(timestamp_begin)/1000)
+            Sms.created >= datetime.datetime.fromtimestamp(float(timestamp_begin)/1000)
         )
 
     result = {
@@ -103,7 +103,7 @@ def get_imsi_circles(request):
 
     if timestamp_begin is not None:
         query = query.filter(
-            Measure.timestamp >= (float(timestamp_begin)/1000)
+            Measure.timestamp >= datetime.datetime.fromtimestamp(float(timestamp_begin)/1000)
         )
 
     result = {
