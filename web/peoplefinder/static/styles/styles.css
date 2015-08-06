@@ -30,6 +30,18 @@ span.logo {
     height: 600px;
 }
 
+#trackingButton.stop {
+    color: #fff;
+    background-color: #B73333;
+    border-color: #A42E2E;
+}
+
+#trackingButton.stop:hover {
+  color: #fff;
+  background-color: #902828;
+  border-color: #742020;
+}
+
 #rightPanel span.sub-header {
     color: #000000;
     font-weight: bold;
