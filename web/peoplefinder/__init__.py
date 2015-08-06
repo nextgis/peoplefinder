@@ -31,14 +31,9 @@ def main(global_config, **settings):
     config.add_route('get_imsi_messages', 'imsi/{imsi}/messages')
     config.add_route('get_imsi_circles', 'imsi/{imsi}/circles')
 
+    # TODO: get XMLRPC port from config
     proxy = xmlrpclib.ServerProxy('http://localhost:8123')
-
-    # get_peoplefinder_number = lambda request: '10001' # TODO: Get from xmlrpc
-    try:
-        get_peoplefinder_number = proxy.get_peoplefinder_number()
-    except xmlrpclib.Error as e:
-        print "ERROR", e
-
+    get_peoplefinder_number = lambda request: proxy.get_peoplefinder_number()
     config.add_request_method(get_peoplefinder_number, 'peoplefinder_number', reify=True)
 
     config.scan()
