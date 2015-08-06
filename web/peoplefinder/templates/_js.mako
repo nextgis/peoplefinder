@@ -7,6 +7,7 @@
 <script src="${request.static_url('peoplefinder:static/js/init.js')}"></script>
 <script src="${request.static_url('peoplefinder:static/js/subscriber.js')}"></script>
 <script src="${request.static_url('peoplefinder:static/js/map.js')}"></script>
+<script src="${request.static_url('peoplefinder:static/js/circlesLayer.js')}"></script>
 <script src="${request.static_url('peoplefinder:static/js/imsiTable.js')}"></script>
 <script src="${request.static_url('peoplefinder:static/js/imsiTracking.js')}"></script>
 <script src="${request.static_url('peoplefinder:static/js/smsViewer.js')}"></script>
