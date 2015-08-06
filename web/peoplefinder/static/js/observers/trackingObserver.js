@@ -40,17 +40,7 @@
                 data: params,
                 dataType: 'json'
             }).done(function (result) {
-                var circles = result.circles,
-                    imsi = result.imsi;
-                $.each(circles, function (i, circle) {
-                    var geoCircle = L.circle(circle.center, circle.radius, {
-                        color: '#c3d569',
-                        weight: 1,
-                        opacity: 1,
-                        fillOpacity: 0
-                    });
-                    geoCircle.addTo(pf.viewmodel.map);
-                });
+                pf.modules.circlesLayer.addCircles(result.circles);
                 setTimeout(function () {
                     if (selectedImsi === pf.viewmodel.selectedImsi) {
                         context.updateCircles(context._timestamp_end);
