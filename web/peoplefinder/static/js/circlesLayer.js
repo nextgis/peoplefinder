@@ -32,6 +32,7 @@
                 this._centersGroupLayer.clearLayers();
                 marker = L.marker(circles[countCircles - 1].center);
                 this._centersGroupLayer.addLayer(marker);
+                pf.viewmodel.map.fitBounds(this._circlesGroupLayer.getBounds());
             }
         },
 
