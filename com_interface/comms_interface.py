@@ -260,7 +260,7 @@ if __name__ == "__main__":
         web_config_file = configuration.get('web_layer', 'config')
         web_configuration = ConfigParser.ConfigParser()
         web_configuration.read([web_config_file])
-        pf_db_conn_str = web_configuration.get('app:main', 'sqlalchemy.url')
+        pf_db_conn_str = web_configuration.get('app:main', 'sqlalchemy.pf.url')
     except ConfigParser.Error as err:
         logger.error("Identification People Finder DB fail: {0}".format(err.message))
         sys.exit(1)
