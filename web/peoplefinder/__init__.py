@@ -6,11 +6,18 @@ from model.models import (
     Base,
 )
 
+from model.hlr import (
+    HLRDBSession,
+)
+
 
 def main(global_config, **settings):
-    engine = engine_from_config(settings, 'sqlalchemy.')
+    engine = engine_from_config(settings, 'sqlalchemy.pf.')
     DBSession.configure(bind=engine)
     Base.metadata.bind = engine
+
+    engine = engine_from_config(settings, 'sqlalchemy.hlr.')
+    HLRDBSession.configure(bind=engine)
 
     config = Configurator(settings=settings)
     config.include('pyramid_mako')
@@ -20,6 +27,9 @@ def main(global_config, **settings):
 
     config.add_route('get_imsi_list', '/imsi/list')
     config.add_route('get_imsi_messages', 'imsi/{imsi}/messages')
+
+    get_peoplefinder_number = lambda request: '10001' # TODO: Get from xmlrpc
+    config.add_request_method(get_peoplefinder_number, 'peoplefinder_number', reify=True)
 
     config.scan()
     return config.make_wsgi_app()

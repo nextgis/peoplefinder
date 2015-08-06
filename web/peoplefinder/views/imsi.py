@@ -8,6 +8,12 @@ from model.models import (
     Measure,
 )
 
+from model.hlr import (
+    HLRDBSession,
+    Sms,
+    Subscriber,
+)
+
 
 @view_config(route_name='get_imsi_list', renderer='json')
 def get_imsi_list(request):
@@ -41,31 +47,38 @@ def get_imsi_list(request):
 
 @view_config(route_name='get_imsi_messages', renderer='json')
 def get_imsi_messages(request):
-    imsi = request.matchdict['imsi']
-    timestamp_begin = request.GET['timestamp_begin'] if 'timestamp_begin' in request.GET else None
-    timestamp_end = request.GET['timestamp_end']
+    imsi = int(request.matchdict['imsi'])
+    timestamp_begin = request.GET.get('timestamp_begin')
+    timestamp_end = request.GET.get('timestamp_end')
 
-    types = ['from', 'to']
+    pfnum = request.peoplefinder_number
+    query = HLRDBSession.query(
+        Sms.text,
+        Sms.src_addr,
+        Sms.dest_addr,
+        Sms.sent
+    ).filter(
+        (((Sms.src_addr == Subscriber.extension) & (Sms.dest_addr == pfnum)) |
+        ((Sms.dest_addr == Subscriber.extension) & (Sms.src_addr == pfnum))) &
+        (Subscriber.imsi == imsi) &
+        (Sms.protocol_id != 64) &
+        (Sms.sent <= datetime.datetime.fromtimestamp(float(timestamp_end)/1000))
+    )
+
+    if timestamp_begin is not None:
+        query = query.filter(
+            Sms.sent >= (float(timestamp_begin)/1000)
+        )
 
     result = {
         'imsi': imsi,
         'sms': []
     }
 
-    import random
-    import string
-
-    if timestamp_begin:
-        sms_count = random.randrange(0, 2)
-    else:
-        sms_count = random.randrange(1, 10)
-
-    c = 0
-    while c < sms_count:
+    for sms in query.all():
         result['sms'].append({
-            'type': random.choice(types),
-            'text': "".join([random.choice(string.letters) for i in xrange(random.randrange(15, 40))])
+            'type': 'from' if sms.dest_addr == pfnum else 'to',
+            'text': sms.text
         })
-        c += 1
 
     return result
