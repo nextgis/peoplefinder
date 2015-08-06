@@ -57,18 +57,18 @@ def get_imsi_messages(request):
         Sms.text,
         Sms.src_addr,
         Sms.dest_addr,
-        Sms.sent
+        Sms.created
     ).filter(
         (((Sms.src_addr == Subscriber.extension) & (Sms.dest_addr == pfnum)) |
         ((Sms.dest_addr == Subscriber.extension) & (Sms.src_addr == pfnum))) &
         (Subscriber.imsi == imsi) &
         (Sms.protocol_id != 64) &
-        (Sms.sent <= datetime.datetime.fromtimestamp(float(timestamp_end)/1000))
+        (Sms.created <= datetime.datetime.fromtimestamp(float(timestamp_end)/1000))
     )
 
     if timestamp_begin is not None:
         query = query.filter(
-            Sms.sent >= (float(timestamp_begin)/1000)
+            Sms.created >= (float(timestamp_begin)/1000)
         )
 
     result = {
