@@ -34,10 +34,6 @@
                     .addClass(context._buttonCss[newButtonState])
                     .text(context._buttonText[newButtonState]);
                 context._buttonState = newButtonState;
-
-                if (newButtonState) {
-                    pf.modules.circlesLayer.clearAll();
-                }
             });
         }
     });

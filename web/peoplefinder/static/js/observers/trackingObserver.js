@@ -15,6 +15,7 @@
             pf.subscriber.subscribe('observer/tracking/toggle', function () {
                 pf.viewmodel.trackingActive = !pf.viewmodel.trackingActive;
                 if (pf.viewmodel.trackingActive) {
+                    pf.modules.circlesLayer.clearAll();
                     context.updateCircles();
                 }
             }, this);
