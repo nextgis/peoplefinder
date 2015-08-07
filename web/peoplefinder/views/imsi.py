@@ -15,6 +15,8 @@ from model.hlr import (
     Subscriber,
 )
 
+from peoplefinder import proxy
+
 
 @view_config(route_name='get_imsi_list', renderer='json')
 def get_imsi_list(request):
@@ -120,5 +122,17 @@ def get_imsi_circles(request):
             'radius': circle.distance,
             'ts': time.mktime(circle.timestamp.timetuple())
         })
+
+    return result
+
+@view_config(route_name='send_imsi_message', request_method='POST', renderer='json')
+def send_imsi_message(request):
+    imsi = request.matchdict['imsi']
+    text = request.body
+    sent = proxy.send_sms(imsi, text)
+
+    result = {
+        'status': 'sent' if sent else 'failed'
+    }
 
     return result
