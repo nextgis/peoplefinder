@@ -129,7 +129,11 @@ def get_imsi_circles(request):
 def send_imsi_message(request):
     imsi = request.matchdict['imsi']
     text = request.body
-    sent = proxy.send_sms(imsi, text)
+
+    try:
+        sent = proxy.send_sms(imsi, text)
+    except xmlrpclib.Error as e:
+        print "ERROR", e
 
     result = {
         'status': 'sent' if sent else 'failed'
