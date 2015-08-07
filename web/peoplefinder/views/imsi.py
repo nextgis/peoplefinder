@@ -62,15 +62,15 @@ def get_imsi_messages(request):
         Sms.created
     ).filter(
         (((Sms.src_addr == Subscriber.extension) & (Sms.dest_addr == pfnum)) |
-        ((Sms.dest_addr == Subscriber.extension) & (Sms.src_addr == pfnum))) &
+         ((Sms.dest_addr == Subscriber.extension) & (Sms.src_addr == pfnum))) &
         (Subscriber.imsi == imsi) &
         (Sms.protocol_id != 64) &
-        (Sms.created <= datetime.datetime.fromtimestamp(float(timestamp_end)/1000))
+        (Sms.created <= datetime.datetime.fromtimestamp(float(timestamp_end) / 1000))
     )
 
     if timestamp_begin is not None:
         query = query.filter(
-            Sms.created >= datetime.datetime.fromtimestamp(float(timestamp_begin)/1000)
+            Sms.created >= datetime.datetime.fromtimestamp(float(timestamp_begin) / 1000)
         )
 
     result = {
@@ -100,12 +100,12 @@ def get_imsi_circles(request):
         Measure.timestamp
     ).filter(
         (Measure.imsi == imsi) &
-        (Measure.timestamp <= datetime.datetime.fromtimestamp(float(timestamp_end)/1000))
+        (Measure.timestamp <= datetime.datetime.fromtimestamp(float(timestamp_end) / 1000))
     )
 
     if timestamp_begin is not None:
         query = query.filter(
-            Measure.timestamp >= datetime.datetime.fromtimestamp(float(timestamp_begin)/1000)
+            Measure.timestamp >= datetime.datetime.fromtimestamp(float(timestamp_begin) / 1000)
         )
 
     result = {
@@ -124,6 +124,7 @@ def get_imsi_circles(request):
         })
 
     return result
+
 
 @view_config(route_name='send_imsi_message', request_method='POST', renderer='json')
 def send_imsi_message(request):
