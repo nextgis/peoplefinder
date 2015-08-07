@@ -34,12 +34,22 @@ class GPSDListenerProcess(multiprocessing.Process):
                 continue
 
             for report in self.__session:
-                keys = report.keys()
-                if ('lat' in keys) and ('lon' in keys):
-                    lat = report['lat']
-                    lon = report['lon']
-                    t = time.mktime(datetime.datetime.strptime(report['time'], "%Y-%m-%dT%H:%M:%S.%fZ").timetuple())
+                if report.get(u'class') == u'TPV':
+                    lat = report.get(u'lat')
+                    lon = report.get(u'lon')
 
-                    self.__comms_model.add_gps_meas(int(t), lat, lon)
+                    time_str = report.get('time')
+                    if time_str is None:
+                        self.logger.error("GPS coordinate does not have timestamps: {0}".format(report))
+                        continue
+
+                    time_timestamp = None
+                    try:
+                        time_timestamp = time.mktime(datetime.datetime.strptime(time_str, "%Y-%m-%dT%H:%M:%S.%fZ").timetuple())
+                    except ValueError as err:
+                        self.logger.error("Cann't deformed time in gpsd message: {0}".format(err.message))
+                        continue
+
+                    self.__comms_model.add_gps_meas(time_timestamp, lat, lon)
 
             self.logger.error("Connection with gpsd lost!")

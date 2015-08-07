@@ -48,10 +48,10 @@ class MeasHandler(multiprocessing.Process):
     def run(self):
         self.logger = logging_utils.get_logger("MeasHandler")
 
-        #bind_session(self._pf_db_connection_string)
+        bind_session(self._pf_db_connection_string)
         self.pf_session = DBSession
 
-        #bind_hlr_session(self._hlr_db_connection_string)
+        bind_hlr_session(self._hlr_db_connection_string)
         self.hlr_session = HLRDBSession
 
         self.try_to_connect_to_vty()
@@ -170,7 +170,7 @@ class CommsModel(object):
         self.__tracking_imsi = None
 
         self.__cc = GPSCoordinatesCollection()
-        self.__cc.add(int(time.time()), 0.0, 0.0)
+        self.__cc.add(time.time(), None, None)
 
         self.logger = logging_utils.get_logger("CommsModel")
 

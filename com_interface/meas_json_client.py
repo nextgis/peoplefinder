@@ -75,9 +75,9 @@ class MeasJsonListenerProcess(multiprocessing.Process):
                                   "Data:{0}".format(data_str))
                 return
 
-            if data["meas_rep"]["NR"] != 0:
-                self.logger.warning("Measure filtered. Because NR != 0.")
-                return
+            # if data["meas_rep"]["NR"] != 1 or data["meas_rep"]["NR"] != 0:
+            #     self.logger.warning("Measure filtered. Because NR != 1.")
+            #     return
 
             self.queue_measurement.put_measurement(data)
 
