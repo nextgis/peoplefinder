@@ -36,6 +36,7 @@ class MeasHandler(multiprocessing.Process):
         self._pf_db_connection_string = pf_db_connection_string
         self._hlr_db_connection_string = hlr_db_connection_string
 
+        self.__update_period = 3
         try:
             self._vty_client = VTYClient(configuration)
         except ValueError as err:
@@ -94,8 +95,17 @@ class MeasHandler(multiprocessing.Process):
         # ).all()
 
         # self.logger.info("sms_comms: {0}".format(sms_comms))
+        last_measure = self.get_last_measure(imsi)
+        last_measure_timestamp = time.mktime(last_measure.timestamp.timetuple())
+        if meas['time'] < last_measure_timestamp:
+            self.logger.info("Ignore measure because: measure is older then one in DB!")
+            return
 
-        if self.is_imsi_already_detected(imsi):
+        if ((meas['time'] - last_measure_timestamp) < self.__update_period) and (last_measure.timing_advance == meas['meas_rep']['L1_TA']):
+            self.logger.info("Ignore measure because: TA is no different from the last mesaure done less then {0} seconds!".format(self.__update_period))
+            return
+
+        if last_measure is not None:
             self.logger.info("IMSI already detected.")
         else:
             self.logger.info("Detect new IMSI. Send welcome message.")
@@ -108,6 +118,12 @@ class MeasHandler(multiprocessing.Process):
         if self.pf_session.query(Measure).filter(Measure.imsi == imsi).count() > 0:
             return True
         return False
+
+    def get_last_measure(self, imsi):
+        last_measures = self.pf_session.query(Measure).filter(Measure.imsi == imsi).order_by(Measure.id.desc()).limit(1).all()
+        if len(last_measures) == 0:
+            return None
+        return last_measures[0]
 
     def save_measure_to_db(self, meas, extension):
         distance = self.__calculate_distance(long(meas['meas_rep']['L1_TA']))
