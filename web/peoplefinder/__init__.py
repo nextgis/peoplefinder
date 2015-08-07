@@ -13,7 +13,7 @@ from model.hlr import (
 )
 
 # TODO: get XMLRPC port from config
-proxy = xmlrpclib.ServerProxy('http://194.165.0.105:8123')
+proxy = xmlrpclib.ServerProxy('http://localhost:8123')
 
 
 def main(global_config, **settings):
