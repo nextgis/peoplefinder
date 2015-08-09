@@ -85,6 +85,14 @@ span.logo {
     display: none;
 }
 
+#smsViewer div.sms.to {
+    color: #4c7300;
+}
+
+#smsViewer div.sms.from {
+    color: #774500;
+}
+
 div.footer {
     font-size: 12px;
     padding: 5px 10px;
