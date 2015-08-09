@@ -34,10 +34,10 @@
 
                     <div class="inner-row">
                         <div class="input-group">
-                            <input type="text" id="sms-input" maxlength="160" class="form-control"
+                            <input type="text" id="smsSenderMessage" maxlength="160" class="form-control"
                                    placeholder="SMS Message"/>
                             <span class="input-group-btn">
-                                <button type="button" id="sendsms-btn" class="btn btn-default">
+                                <button type="button" id="sendSms" class="btn btn-default">
                                     <i class="fa fa-send"></i>
                                 </button>
                             </span>
