@@ -82,8 +82,6 @@ def get_imsi_circles(request):
     timestamp_begin = request.GET['timestamp_begin'] if 'timestamp_begin' in request.GET else None
     timestamp_end = request.GET['timestamp_end']
 
-    types = ['from', 'to']
-
     result = {
         'imsi': imsi,
         'circles': []
@@ -104,5 +102,21 @@ def get_imsi_circles(request):
             'radius': random.randrange(30, 300)
         })
         c += 1
+
+    return result
+
+
+@view_config(route_name='send_imsi_message', request_method='POST', renderer='json')
+def send_imsi_message(request):
+    imsi = request.matchdict['imsi']
+    text = request.body
+
+    import random
+    statuses = ['sent', 'failed']
+    sent = random.choice(statuses)
+
+    result = {
+        'status': sent
+    }
 
     return result
