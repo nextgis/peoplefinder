@@ -59,6 +59,7 @@ def get_imsi_messages(request):
 
     import random
     import string
+    import time
 
     if timestamp_begin:
         sms_count = random.randrange(0, 2)
@@ -69,9 +70,11 @@ def get_imsi_messages(request):
     while c < sms_count:
         result['sms'].append({
             'type': random.choice(types),
-            'text': "".join([random.choice(string.letters) for i in xrange(random.randrange(15, 40))])
+            'text': time.time() * 1000000
         })
         c += 1
+
+    result['sms'] = sorted(result['sms'], lambda sms: sms['text'])
 
     return result
 
