@@ -11,6 +11,7 @@
 <script src="${request.static_url('peoplefinder:static/js/imsiTable.js')}"></script>
 <script src="${request.static_url('peoplefinder:static/js/imsiTracking.js')}"></script>
 <script src="${request.static_url('peoplefinder:static/js/smsViewer.js')}"></script>
+<script src="${request.static_url('peoplefinder:static/js/smsSender.js')}"></script>
 <script src="${request.static_url('peoplefinder:static/js/observers/imsiListObserver.js')}"></script>
 <script src="${request.static_url('peoplefinder:static/js/observers/selectedImsiObserver.js')}"></script>
 <script src="${request.static_url('peoplefinder:static/js/observers/smsListObserver.js')}"></script>
