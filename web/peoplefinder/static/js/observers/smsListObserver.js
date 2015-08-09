@@ -43,8 +43,7 @@
                 var sms = result.sms,
                     imsi = result.imsi;
                 $.each(sms, function (i, smsItem) {
-                    var $smsItem = $('<div class="' + smsItem.type + ' sms">' + smsItem.type + ' ' + imsi + ': ' + smsItem.text + '</div>');
-                    $smsItem.appendTo(pf.view.$smsViewer);
+                    pf.modules.smsViewer.addSms(imsi, smsItem);
                 });
                 setTimeout(function () {
                     if (selectedImsi === pf.viewmodel.selectedImsi) {

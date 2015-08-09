@@ -12,6 +12,11 @@
 
         clear: function () {
             pf.view.$smsViewer.find('div.sms').remove();
+        },
+
+        addSms: function (imsi, smsItem) {
+            var $smsItem = $('<div class="' + smsItem.type + ' sms">' + smsItem.type + ' ' + imsi + ': ' + smsItem.text + '</div>');
+            $smsItem.prependTo(pf.view.$smsViewer);
         }
     });
 }(jQuery, pf));
