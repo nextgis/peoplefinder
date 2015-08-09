@@ -15,7 +15,7 @@
         },
 
         addSms: function (imsi, smsItem) {
-            var $smsItem = $('<div class="' + smsItem.type + ' sms">' + smsItem.type + ' ' + imsi + ': ' + smsItem.text + '</div>');
+            var $smsItem = $('<div class="' + smsItem.type + ' sms">' + smsItem.type + ': ' + smsItem.text + '</div>');
             $smsItem.prependTo(pf.view.$smsViewer);
         }
     });
