@@ -8,9 +8,9 @@ class VTYClient(object):
         self.__tn = None
 
         try:
-            self.__host = configuration.get('osmo_nitb', 'vty_host')
-            self.__port = configuration.getint('osmo_nitb', 'vty_port')
-            self.__readtimeout_secs = configuration.getint('osmo_nitb', 'vty_timeout')
+            self.__host = configuration.get('osmo_nitb_vty', 'host')
+            self.__port = configuration.getint('osmo_nitb_vty', 'port')
+            self.__readtimeout_secs = configuration.getint('osmo_nitb_vty', 'timeout')
 
         except ConfigParser.Error as err:
             raise ValueError('Configuration error: {0}'.format(err.message))

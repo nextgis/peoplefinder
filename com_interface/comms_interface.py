@@ -17,7 +17,6 @@ from meas_json_client import MeasJsonListenerProcess
 from osmo_nitb_utils import VTYClient
 from xmlrpc_server import XMLRPCProcess
 from gpsd_client import GPSDListenerProcess
-default_config_file = os.path.join(os.path.dirname(__file__), "config.ini")
 
 wellcome_message = "You are connected to a mobile search and rescue team. \
                     Please SMS to 10001 to communicate. \
@@ -257,15 +256,12 @@ CommsModelManager.register('CommsModel', CommsModel)
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description='People finder. Comm interface.')
-    parser.add_argument('-c', '--configuration', type=file)
+    parser.add_argument('-c', '--configuration', type=file, required=True)
     parser.add_argument('-t', '--test_mode', action='store_true')
     args = parser.parse_args()
 
     configuration = ConfigParser.ConfigParser()
-    if args.configuration is None:
-        configuration.read([default_config_file])
-    else:
-        configuration.readfp(args.configuration)
+    configuration.readfp(args.configuration)
 
     logger = logging_utils.get_logger("main")
     logger.info("Comm interface started! pid: {0}".format(os.getpid()))
@@ -273,15 +269,12 @@ if __name__ == "__main__":
     # Init DB ================================================================
     pf_db_conn_str = None
     try:
-        web_config_file = configuration.get('web_layer', 'config')
-        web_configuration = ConfigParser.ConfigParser()
-        web_configuration.read([web_config_file])
-        pf_db_conn_str = web_configuration.get('app:main', 'sqlalchemy.pf.url')
+        pf_db_conn_str = configuration.get('app:main', 'sqlalchemy.pf.url')
     except ConfigParser.Error as err:
         logger.error("Identification People Finder DB fail: {0}".format(err.message))
         sys.exit(1)
 
-    logger.info("pf db sqlite path: {0}".format(pf_db_conn_str))
+    logger.info("PF db sqlite path: {0}".format(pf_db_conn_str))
     try:
         bind_session(pf_db_conn_str)
         DBSession.query(Measure).count()
@@ -291,7 +284,7 @@ if __name__ == "__main__":
 
     hlr_db_conn_str = None
     try:
-        hlr_db_conn_str = configuration.get('osmo_nitb', 'db')
+        hlr_db_conn_str = configuration.get('app:main', 'sqlalchemy.hlr.url')
     except ConfigParser.Error as err:
         logger.error("Identification HLR fail: {0}".format(err.message))
         sys.exit(1)
@@ -304,8 +297,6 @@ if __name__ == "__main__":
     except:
         logger.error("HLR DB connection err")
         raise
-
-    # Events =================================================================
 
     # Init shared objects ====================================================
     manager = CommsModelManager()
