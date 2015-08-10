@@ -35,8 +35,8 @@ sudo service supervisor restart
 virtualenv $HOME/env
 
 # create directiories
-sudo mkdir $PEOPLEFINDER_CONF_DIR
-sudo mkdir $PEOPLEFINDER_LOG_DIR
+sudo mkdir -p $PEOPLEFINDER_CONF_DIR
+sudo mkdir -p $PEOPLEFINDER_LOG_DIR
 
 # clone repository
 git clone https://github.com/nextgis/peoplefinder.git "$HOME/peoplefinder"
