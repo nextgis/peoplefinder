@@ -4,6 +4,7 @@
 HOME=/home/cloud
 NGINX_CONF_DIR=/etc/nginx
 SUPERVISOR_CONF_DIR=/etc/supervisor/conf.d
+PEOPLEFINDER_CONF_DIR=/etc/peoplefinder
 
 sudo apt-get install aptitude
 sudo apt-get install python-dev
@@ -32,11 +33,11 @@ git clone https://github.com/nextgis/peoplefinder.git "$HOME/peoplefinder"
 # install application
 $HOME/env/bin/pip install -e ./peoplefinder/web
 $HOME/env/bin/pip install uwsgi
-cp "$HOME/peoplefinder/web/development.example.ini" "$HOME/peoplefinder/web/development.ini"
+sudo cp "$HOME/peoplefinder/web/development.example.ini" "$PEOPLEFINDER_CONF_DIR/config.ini"
 
 # initialize db
 export PYTHONPATH="${PYTHONPATH}:$HOME/peoplefinder"
-$HOME/env/bin/initialize_peoplefinder_db "$HOME/peoplefinder/web/development.ini"
+$HOME/env/bin/initialize_peoplefinder_db "$PEOPLEFINDER_CONF_DIR/config.ini"
 
 # setup supervisor
 sudo cp "$HOME/peoplefinder/web/deploy/peoplefinder.conf" "$NGINX_CONF_DIR"
