@@ -70,7 +70,7 @@ class XMLRPCProcess(multiprocessing.Process):
             time.sleep(0.1)
 
     def get_peoplefinder_number(self):
-        return "10001"
+        return self.__comms_model.get_pf_phone_number()
 
     def send_sms(self, imsi, msg):
         self.logger.info("Process send sms command. IMSI: %s, sms text: %s" % (imsi, msg))

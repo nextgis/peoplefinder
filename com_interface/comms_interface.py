@@ -18,17 +18,13 @@ from osmo_nitb_utils import VTYClient
 from xmlrpc_server import XMLRPCProcess
 from gpsd_client import GPSDListenerProcess
 
-wellcome_message = "You are connected to a mobile search and rescue team. \
-                    Please SMS to 10001 to communicate. \
-                    Your temporary phone number is %s"
-
 
 # Read queue measurements.
 # Add measurement in MeasurementsModel.
 # Send welcome message for new imsi.
 class MeasHandler(multiprocessing.Process):
-    def __init__(self, configuration, queue_measurement, pf_db_connection_string, hlr_db_connection_string):
-        self.queue_measurement = queue_measurement
+    def __init__(self, configuration, comms_model, pf_db_connection_string, hlr_db_connection_string):
+        self.comms_model = comms_model
         super(MeasHandler, self).__init__(name="MeasHandler")
         self.__time_to_shutdown = multiprocessing.Event()
 
@@ -71,7 +67,7 @@ class MeasHandler(multiprocessing.Process):
             if self._vty_client.is_active() is False:
                 self.try_to_connect_to_vty()
 
-            meas = self.queue_measurement.get_measurement()
+            meas = self.comms_model.get_measurement()
             if meas is not None:
                 self.process_measure(meas)
             else:
@@ -95,20 +91,21 @@ class MeasHandler(multiprocessing.Process):
 
         # self.logger.info("sms_comms: {0}".format(sms_comms))
         last_measure = self.get_last_measure(imsi)
-        last_measure_timestamp = time.mktime(last_measure.timestamp.timetuple())
-        if meas['time'] < last_measure_timestamp:
-            self.logger.info("Ignore measure because: measure is older then one in DB!")
-            return
-
-        if ((meas['time'] - last_measure_timestamp) < self.__update_period) and (last_measure.timing_advance == meas['meas_rep']['L1_TA']):
-            self.logger.info("Ignore measure because: TA is no different from the last mesaure done less then {0} seconds!".format(self.__update_period))
-            return
 
         if last_measure is not None:
             self.logger.info("IMSI already detected.")
+
+            last_measure_timestamp = time.mktime(last_measure.timestamp.timetuple())
+            if meas['time'] < last_measure_timestamp:
+                self.logger.info("Ignore measure because: measure is older then one in DB!")
+                return
+
+            if ((meas['time'] - last_measure_timestamp) < self.__update_period) and (last_measure.timing_advance == meas['meas_rep']['L1_TA']):
+                self.logger.info("Ignore measure because: TA is no different from the last mesaure done less then {0} seconds!".format(self.__update_period))
+                return
         else:
             self.logger.info("Detect new IMSI. Send welcome message.")
-            if not self._vty_client.send_sms(imsi, wellcome_message % extension):
+            if not self._vty_client.send_sms(imsi, self.comms_model.get_wellcome_message(ms_phone_number=extension)):
                 self.logger.error("Welcome message not send.")
 
         self.save_measure_to_db(meas, extension)
@@ -176,6 +173,7 @@ class GPSCoordinatesCollection(object):
 
 
 class CommsModel(object):
+
     def __init__(self):
         self.objects = {}
         self.queue = []
@@ -188,6 +186,20 @@ class CommsModel(object):
         self.__cc.add(time.time(), None, None)
 
         self.logger = logging_utils.get_logger("CommsModel")
+
+        self.pf_phone_number = "10001"
+
+    def get_wellcome_message(self, **wargs):
+        msg = ("You are connected to a mobile search and rescue team. " +
+               "Please SMS to {ph_phone_number} to communicate. " +
+               "Your temporary phone number is {ms_phone_number}")
+
+        wargs["ph_phone_number"] = self.pf_phone_number
+
+        return msg.format(**wargs)
+
+    def get_pf_phone_number(self):
+        return self.pf_phone_number
 
     def set_tracking_imsi(self, imsi):
         self.logger.info("set_tracking_imsi - START".format(imsi))
@@ -302,6 +314,47 @@ if __name__ == "__main__":
     manager = CommsModelManager()
     manager.start()
     comms_model = manager.CommsModel()
+
+    # Configurate nitb =======================================================
+    pf_phone_number = comms_model.get_pf_phone_number()
+    pf_imsi = 1
+
+    vty_client = VTYClient(configuration)
+    if vty_client.try_connect() is False:
+        logger.error("Connect to osmo nitb VTY FAIL!")
+        manager.shutdown()
+        manager.join()
+        sys.exit(1)
+
+    if vty_client.conf_meas_feed() is True:
+        logger.info("Configurate osmo nitb measurements over VTY SUCCESS!")
+    else:
+        logger.error("Configurate osmo nitb measurements over VTY FAIL!")
+        manager.shutdown()
+        manager.join()
+        sys.exit(1)
+
+    vty_client = None
+
+    pf_subscriber = HLRDBSession.query(Subscriber).filter(Subscriber.extension == pf_phone_number).all()
+    if len(pf_subscriber) > 1:
+        logger.error("HLR has incorrect structure more then one subscribers with extension {0}".format(pf_phone_number))
+        manager.shutdown()
+        manager.join()
+        sys.exit(1)
+
+    if len(pf_subscriber) == 0:
+        obj = Subscriber(created=time.time(),
+                         updated=time.time(),
+                         imsi=pf_imsi,
+                         name="peoplefinder",
+                         extension=pf_phone_number,
+                         )
+        logger.info("Add PF subscriber. imsi: {0}, extension: {1}".format(pf_imsi, pf_phone_number))
+        HLRDBSession.add(obj)
+
+    if len(pf_subscriber) == 1:
+        logger.info("PF subscriber with phone number {0} already created.".format(pf_phone_number))
 
     # Init processes =========================================================
     logger.info("Init gpsd listener")
