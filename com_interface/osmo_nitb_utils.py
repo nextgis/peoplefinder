@@ -40,21 +40,21 @@ class VTYClient(object):
 
         try:
             self.__tn.write("enable\n")
-            print ">>>>>>>>>>>>>>>>>> 1"
+
             self.__tn.read_until("OpenBSC#", self.__readtimeout_secs)
             self.__tn.write("configure terminal\n")
-            print ">>>>>>>>>>>>>>>>>> 2"
+
             self.__tn.read_until("OpenBSC(config)#", self.__readtimeout_secs)
             self.__tn.write("mncc-int\n")
-            print ">>>>>>>>>>>>>>>>>> 3"
+
             self.__tn.read_until("OpenBSC(config-mncc-int)#", self.__readtimeout_secs)
             self.__tn.write("meas-feed destination 127.0.0.1 8888\n")
-            print ">>>>>>>>>>>>>>>>>> 4"
+
             self.__tn.read_until("OpenBSC(config-mncc-int)#", self.__readtimeout_secs)
             self.__tn.write("write file\n")
-            print ">>>>>>>>>>>>>>>>>> 5"
+
             self.__tn.read_until("OpenBSC(config-mncc-int)#", self.__readtimeout_secs)
-            print ">>>>>>>>>>>>>>>>>> 6"
+
             return True
         except:
             self.__tn = None
