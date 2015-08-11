@@ -344,14 +344,17 @@ if __name__ == "__main__":
         sys.exit(1)
 
     if len(pf_subscriber) == 0:
-        obj = Subscriber(created=time.time(),
-                         updated=time.time(),
+        obj = Subscriber(created=datetime.datetime.fromtimestamp(time.time()),
+                         updated=datetime.datetime.fromtimestamp(time.time()),
                          imsi=pf_imsi,
                          name="peoplefinder",
                          extension=pf_phone_number,
+                         authorized=1,
+                         lac=1,
                          )
-        logger.info("Add PF subscriber. imsi: {0}, extension: {1}".format(pf_imsi, pf_phone_number))
-        HLRDBSession.add(obj)
+        with transaction.manager:
+            HLRDBSession.add(obj)
+            logger.info("Add PF subscriber. imsi: {0}, extension: {1}".format(pf_imsi, pf_phone_number))
 
     if len(pf_subscriber) == 1:
         logger.info("PF subscriber with phone number {0} already created.".format(pf_phone_number))
