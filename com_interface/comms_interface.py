@@ -175,12 +175,8 @@ class GPSCoordinatesCollection(object):
 class CommsModel(object):
 
     def __init__(self):
-        self.objects = {}
         self.queue = []
-        self.high_priority_objects_count = 0
         self.rlock = multiprocessing.RLock()
-
-        self.__tracking_imsi = None
 
         self.__cc = GPSCoordinatesCollection()
         self.__cc.add(time.time(), None, None)
@@ -201,56 +197,20 @@ class CommsModel(object):
     def get_pf_phone_number(self):
         return self.pf_phone_number
 
-    def set_tracking_imsi(self, imsi):
-        self.logger.info("set_tracking_imsi - START".format(imsi))
-        self.__tracking_imsi = imsi
-        self.logger.info("set_tracking_imsi - FINISH".format(imsi))
-
-    def get_tracking_imsi(self):
-        return self.__tracking_imsi
-
-    def clear_tracking_imsi(self):
-        self.__tracking_imsi = None
-
     def put_measurement(self, obj):
-        with self.rlock:
-            imsi = obj['imsi']
+        lat, lon = self.__cc.get_coordinates(obj['time'])
+        obj['lat'] = lat
+        obj['lon'] = lon
 
-            lat, lon = self.__cc.get_coordinates(obj['time'])
-            obj['lat'] = lat
-            obj['lon'] = lon
+        self.logger.debug("put_measurement: imsi={0} lat={1}, lon={2}".format(obj['imsi'], lat, lon))
 
-            self.logger.debug("put_measurement: imsi={0} lat={1}, lon={2}".format(imsi, lat, lon))
-
-            with_priority = self.__tracking_imsi == imsi
-
-            self.logger.debug("put_measurement: with_priority={0}".format(with_priority))
-
-            if imsi in self.queue:
-                cur_index = self.queue.index(imsi)
-                cur_with_prior = cur_index <= self.high_priority_objects_count
-
-                if (cur_with_prior is False) and (with_priority is True):
-                    self.queue.remove(imsi)
-                    self.queue.insert(self.high_priority_objects_count, obj)
-                    self.high_priority_objects_count += 1
-            else:
-                if with_priority is True:
-                    self.queue.insert(self.high_priority_objects_count, obj)
-                    self.high_priority_objects_count += 1
-                else:
-                    self.queue.append(obj)
-
-            self.objects[imsi] = obj
+        self.queue.append(obj)
 
     def get_measurement(self):
-        with self.rlock:
-            if len(self.queue) > 0:
-                return self.queue.pop(0)
-                if self.high_priority_objects_count > 0:
-                    self.high_priority_objects_count -= 1
-            else:
-                return None
+        if len(self.queue) > 0:
+            return self.queue.pop(0)
+        else:
+            return None
 
     def number_of_measurements_in_queue(self):
         with self.rlock:

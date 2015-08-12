@@ -1,12 +1,15 @@
 import multiprocessing
 import threading
+import Queue
 import time
 import ConfigParser
 from SimpleXMLRPCServer import SimpleXMLRPCServer
 from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler
+from sqlalchemy import func
 
 import logging_utils
 from osmo_nitb_utils import VTYClient
+from model.hlr import bind_session as bind_hlr_session, HLRDBSession, Subscriber, Sms
 
 
 # Restrict to a particular path.
@@ -21,7 +24,7 @@ class XMLRPCProcess(multiprocessing.Process):
         try:
             self._xmlrpc_server_host = configuration.get('xmlrpc_server', 'host')
             self._xmlrpc_server_port = configuration.getint('xmlrpc_server', 'port')
-
+            self._hlr_db_connection_string = configuration.get('app:main', 'sqlalchemy.hlr.url')
         except ConfigParser.Error as err:
             raise ValueError('Configuration error: {0}'.format(err.message))
 
@@ -46,6 +49,8 @@ class XMLRPCProcess(multiprocessing.Process):
 
     def run(self):
         self.logger = logging_utils.get_logger("XMLRPCProcess")
+        bind_hlr_session(self._hlr_db_connection_string)
+
         self.try_to_connect_to_vty()
 
         # Create server
@@ -80,26 +85,69 @@ class XMLRPCProcess(multiprocessing.Process):
         self.logger.info("Process send silent sms command. IMSI: %s" % (imsi))
         return self._vty_client.send_silent_sms(imsi)
 
-    def start_tracking(self, imsi):
-        self.__comms_model.set_tracking_imsi(imsi)
+    def start_tracking(self):
+        self.__imis_reday_for_silent_sms_list = Queue.Queue()
 
         self.__stop_trackin_event = threading.Event()
         self.__stop_trackin_event.clear()
+
         self.__tracking_process = threading.Thread(target=self.tracking_process)
         self.__tracking_process.start()
-        self.logger.info("Start tracking IMSI %s!" % imsi)
+
+        self.__prepare_imsi_process = threading.Thread(target=self.prepare_ready_for_silent_sms)
+        self.__prepare_imsi_process.start()
+
+        self.logger.info("Start tracking!")
+
         return True
 
     def stop_tracking(self):
         self.__stop_trackin_event.set()
-        self.__comms_model.clear_tracking_imsi()
+        self.__tracking_process.join()
+        self.__prepare_imsi_process.join()
+        self.logger.info("Stop tracking!")
         return True
 
     def tracking_process(self):
         while self.__stop_trackin_event.is_set() is False:
-            tracking_imsi = self.__comms_model.get_tracking_imsi()
-            if self._vty_client.send_silent_sms(tracking_imsi):
-                self.logger.info("Send silent sms to IMSI %s!" % tracking_imsi)
-            else:
-                self.logger.error("Silent sms to IMSI %s NOT SEND!" % tracking_imsi)
+
+            try:
+                imsi = self.__imis_reday_for_silent_sms_list.get_nowait()
+                if self._vty_client.send_silent_sms(imsi):
+                    self.logger.info("Send silent sms to IMSI %s!" % imsi)
+                else:
+                    self.logger.error("Silent sms to IMSI %s NOT SEND!" % imsi)
+            except Queue.Empty:
+                time.sleep(0.1)
+
+    def prepare_ready_for_silent_sms(self):
+        while self.__stop_trackin_event.is_set() is False:
+            sub_sms = HLRDBSession.query(
+                Subscriber.imsi,
+                Sms.dest_addr,
+                Sms.sent,
+                func.max(Sms.created)
+            ).select_from(
+                Subscriber
+            ).outerjoin(
+                Sms,
+                (
+                    (Sms.dest_addr == Subscriber.extension) and
+                    (Sms.protocol_id == 64)
+                )
+            ).group_by(
+                Sms.dest_addr
+            ).filter(
+                Subscriber.extension != self.__comms_model.get_pf_phone_number()
+            ).all()
+
+            for (imsi, dest_addr, sent, created) in sub_sms:
+                if dest_addr is not None:
+                    self.logger.debug(" sub: {0}, sms: {1}!".format(imsi, dest_addr))
+                    if sent is not None:
+                        self.__imis_reday_for_silent_sms_list.put(imsi)
+                else:
+                    self.logger.debug(" No silent sms for sub: {0}!".format(imsi))
+                    self.__imis_reday_for_silent_sms_list.put(imsi)
+
             time.sleep(3)
