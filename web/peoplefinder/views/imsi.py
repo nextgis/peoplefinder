@@ -15,8 +15,6 @@ from model.hlr import (
     Subscriber,
 )
 
-from peoplefinder import proxy
-
 
 @view_config(route_name='get_imsi_list', renderer='json')
 def get_imsi_list(request):
@@ -54,7 +52,7 @@ def get_imsi_messages(request):
     timestamp_begin = request.GET.get('timestamp_begin')
     timestamp_end = request.GET.get('timestamp_end')
 
-    pfnum = "10001"
+    pfnum = request.xmlrpc.get_peoplefinder_number()
     query = HLRDBSession.query(
         Sms.text,
         Sms.src_addr,
@@ -131,10 +129,7 @@ def send_imsi_message(request):
     imsi = request.matchdict['imsi']
     text = request.body
 
-    try:
-        sent = proxy.send_sms(imsi, text)
-    except xmlrpclib.Error as e:
-        print "ERROR", e
+    sent = request.xmlrpc.send_sms(imsi, text)
 
     result = {
         'status': 'sent' if sent else 'failed'
