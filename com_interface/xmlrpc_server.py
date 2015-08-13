@@ -22,8 +22,8 @@ class XMLRPCProcess(multiprocessing.Process):
         super(XMLRPCProcess, self).__init__()
 
         try:
-            self._xmlrpc_server_host = configuration.get('xmlrpc_server', 'host')
-            self._xmlrpc_server_port = configuration.getint('xmlrpc_server', 'port')
+            self._xmlrpc_server_host = configuration.get('app:main', 'xmlrpc.host')
+            self._xmlrpc_server_port = configuration.getint('app:main', 'xmlrpc.port')
             self._hlr_db_connection_string = configuration.get('app:main', 'sqlalchemy.hlr.url')
         except ConfigParser.Error as err:
             raise ValueError('Configuration error: {0}'.format(err.message))
