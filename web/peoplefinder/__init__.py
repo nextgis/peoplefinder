@@ -12,9 +12,6 @@ from model.hlr import (
     HLRDBSession,
 )
 
-# TODO: get XMLRPC port from config
-proxy = xmlrpclib.ServerProxy('http://localhost:8123')
-
 
 def main(global_config, **settings):
     engine = engine_from_config(settings, 'sqlalchemy.pf.')
@@ -23,6 +20,9 @@ def main(global_config, **settings):
 
     engine = engine_from_config(settings, 'sqlalchemy.hlr.')
     HLRDBSession.configure(bind=engine)
+
+    xmlrpc_url = 'http://%(xmlrpc.host)s:%(xmlrpc.port)s' % settings
+    xmlrpc = lambda request: xmlrpclib.ServerProxy(xmlrpc_url)
 
     config = Configurator(settings=settings)
     config.include('pyramid_mako')
@@ -35,8 +35,7 @@ def main(global_config, **settings):
     config.add_route('get_imsi_circles', 'imsi/{imsi}/circles')
     config.add_route('send_imsi_message', 'imsi/{imsi}/message')
 
-    get_peoplefinder_number = lambda request: proxy.get_peoplefinder_number()
-    config.add_request_method(get_peoplefinder_number, 'peoplefinder_number', reify=True)
+    config.add_request_method(xmlrpc, 'xmlrpc', reify=True)
 
     config.scan()
     return config.make_wsgi_app()
