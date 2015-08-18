@@ -8,7 +8,6 @@
         },
 
         setDom: function () {
-            pf.view.$targetImsi = $('#imsi-input');
             pf.view.$trackingButton = $('#trackingButton');
         },
 
