@@ -17,5 +17,5 @@ function loadModules() {
     pf.modules.smsViewer.init();
     pf.modules.smsSender.init();
     pf.modules.imsiTracking.init();
-    pf.modules.trackingObserver.init();
+    pf.modules.circlesObserver.init();
 }

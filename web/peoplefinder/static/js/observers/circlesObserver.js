@@ -1,6 +1,6 @@
 (function ($, pf, L) {
-    pf.modules.trackingObserver = {};
-    $.extend(pf.modules.trackingObserver, {
+    pf.modules.circlesObserver = {};
+    $.extend(pf.modules.circlesObserver, {
 
         _circles: null,
 
