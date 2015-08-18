@@ -64,8 +64,6 @@
             var currentButtonState = this._buttonState,
                 newButtonState = (currentButtonState === 0 ? 1 : 0);
 
-            pf.subscriber.publish('observer/tracking/toggle');
-
             this.$trackingButton
                 .removeClass('wait ' + this._buttonCss[currentButtonState])
                 .addClass(this._buttonCss[newButtonState])
@@ -74,7 +72,7 @@
             this.bindTrackingButtonClick();
         },
 
-        failRunActionTracking: function (jqXHR, textStatus) {
+        failRunActionTracking: function (jqXHR) {
             this.$trackingButton
                 .removeClass('wait')
                 .text(this._buttonText[this._buttonState]);
