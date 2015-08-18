@@ -10,7 +10,7 @@
                 <div class="row">
                     <span class="text-uppercase sub-header">Tracking</span>
                     <div class="inner-row">
-                        <button type="button" id="trackingButton" class="btn btn-primary">Start Tracking</button>
+                        <button type="button" id="trackingButton" class="btn btn-primary start">Start Tracking</button>
                         <button type="button" id="clear-btn" class="btn btn-link btn-xs">Clear Results</button>
                     </div>
                 </div>
