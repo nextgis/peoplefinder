@@ -149,7 +149,7 @@ def send_imsi_message(request):
 def start_tracking(request):
     result = {}
     try:
-        request.xmlrpc.start_trackinge()
+        request.xmlrpc.start_tracking()
         result['status'] = 'started'
     except (socket.error, xmlrpclib.Error) as e:
         result['status'] = 'failed'
