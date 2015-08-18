@@ -20,6 +20,10 @@
             'Starting...',
             'Stopping...'
         ],
+        _actionUrl: [
+            pf.settings.root_url + '/tracking/start',
+            pf.settings.root_url + '/tracking/stop'
+        ],
         _buttonCss: [
             'start',
             'stop'
