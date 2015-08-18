@@ -31,10 +31,22 @@
         _buttonState: 0,
 
         bindEvents: function () {
-            pf.view.$trackingButton.click($.proxy(this.trackingButtonClickHandler, this));
+            this.bindTrackingButtonClick();
+        },
+
+        bindTrackingButtonClick: function () {
+            pf.view.$trackingButton.on('click', $.proxy(this.trackingButtonClickHandler, this));
+        },
+
+        unbindTrackingButtonClick: function () {
+            pf.view.$trackingButton.off('click', $.proxy(this.trackingButtonClickHandler, this));
         },
 
         trackingButtonClickHandler: function () {
+            var currentButtonState = this._buttonState;
+            pf.view.$trackingButton
+                .addClass('wait')
+                .text(this._waitButtonText[currentButtonState]);
         }
     });
 }(jQuery, pf));
