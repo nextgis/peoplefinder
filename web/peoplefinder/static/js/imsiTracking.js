@@ -7,8 +7,9 @@
             this.bindEvents();
         },
 
+        $trackingButton: null,
         setDom: function () {
-            pf.view.$trackingButton = $('#trackingButton');
+            this.$trackingButton = $('#trackingButton');
         },
 
         _buttonText: [
@@ -34,16 +35,16 @@
         },
 
         bindTrackingButtonClick: function () {
-            pf.view.$trackingButton.on('click', $.proxy(this.trackingButtonClickHandler, this));
+            this.$trackingButton.on('click', $.proxy(this.trackingButtonClickHandler, this));
         },
 
         unbindTrackingButtonClick: function () {
-            pf.view.$trackingButton.off('click', $.proxy(this.trackingButtonClickHandler, this));
+            this.$trackingButton.off('click', $.proxy(this.trackingButtonClickHandler, this));
         },
 
         trackingButtonClickHandler: function () {
             var currentButtonState = this._buttonState;
-            pf.view.$trackingButton
+            this.$trackingButton
                 .addClass('wait')
                 .text(this._waitButtonText[currentButtonState]);
         }
