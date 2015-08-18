@@ -43,10 +43,19 @@
         },
 
         trackingButtonClickHandler: function () {
-            var currentButtonState = this._buttonState;
+            var currentButtonState = this._buttonState,
+                newButtonState = (currentButtonState === 0 ? 1 : 0),
+                runActionTracking;
+
+            this.unbindTrackingButtonClick();
             this.$trackingButton
                 .addClass('wait')
                 .text(this._waitButtonText[currentButtonState]);
+
+            runActionTracking = $.ajax({
+                url: this._actionUrl[currentButtonState],
+                dataType: 'json'
+            });
         }
     });
 }(jQuery, pf));
