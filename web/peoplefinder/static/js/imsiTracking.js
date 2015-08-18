@@ -66,7 +66,10 @@
         },
 
         failRunActionTracking: function (jqXHR, textStatus) {
-
+            this.$trackingButton
+                .removeClass('wait')
+                .text(this._buttonText[this._buttonState]);
+            console.log(jqXHR);
         }
     });
 }(jQuery, pf));
