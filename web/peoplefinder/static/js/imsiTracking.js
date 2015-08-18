@@ -52,7 +52,7 @@
                 .text(this._waitButtonText[currentButtonState]);
 
             runActionTracking = $.ajax({
-                url: this._actionUrl[currentButtonState],
+                url: pf.settings.root_url + this._actionUrl[currentButtonState],
                 dataType: 'json'
             });
 
