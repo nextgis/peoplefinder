@@ -21,8 +21,8 @@
             'Stopping...'
         ],
         _actionUrl: [
-            pf.settings.root_url + '/tracking/start',
-            pf.settings.root_url + '/tracking/stop'
+            '/tracking/start',
+            '/tracking/stop'
         ],
         _buttonCss: [
             'start',
