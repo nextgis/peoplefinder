@@ -3,6 +3,8 @@ from sqlalchemy import func
 
 import time
 import datetime
+import xmlrpclib
+import socket
 
 from model.models import (
     DBSession,
@@ -16,7 +18,7 @@ from model.hlr import (
 )
 
 
-@view_config(route_name='get_imsi_list', renderer='json')
+@view_config(route_name='get_imsi_list', request_method='GET', renderer='json')
 def get_imsi_list(request):
     result = []
 
@@ -46,7 +48,7 @@ def get_imsi_list(request):
     }
 
 
-@view_config(route_name='get_imsi_messages', renderer='json')
+@view_config(route_name='get_imsi_messages', request_method='GET', renderer='json')
 def get_imsi_messages(request):
     imsi = int(request.matchdict['imsi'])
     timestamp_begin = request.GET.get('timestamp_begin')
@@ -89,7 +91,7 @@ def get_imsi_messages(request):
     return result
 
 
-@view_config(route_name='get_imsi_circles', renderer='json')
+@view_config(route_name='get_imsi_circles', request_method='GET', renderer='json')
 def get_imsi_circles(request):
     imsi = request.matchdict['imsi']
     timestamp_begin = request.GET.get('timestamp_begin')
@@ -130,13 +132,38 @@ def get_imsi_circles(request):
 
 @view_config(route_name='send_imsi_message', request_method='POST', renderer='json')
 def send_imsi_message(request):
+    result = {}
     imsi = request.matchdict['imsi']
     text = request.body
 
-    sent = request.xmlrpc.send_sms(imsi, text)
+    try:
+        sent = request.xmlrpc.send_sms(imsi, text)
+        result['status'] = 'sent' if sent else 'failed'
+    except (socket.error, xmlrpclib.Error) as e:
+        result['status'] = 'failed'
+        result['reason'] = e.strerror
+    return result
 
-    result = {
-        'status': 'sent' if sent else 'failed'
-    }
 
+@view_config(route_name='start_tracking', request_method='GET', renderer='json')
+def start_tracking(request):
+    result = {}
+    try:
+        request.xmlrpc.start_tracking()
+        result['status'] = 'started'
+    except (socket.error, xmlrpclib.Error) as e:
+        result['status'] = 'failed'
+        result['reason'] = e.strerror
+    return result
+
+
+@view_config(route_name='stop_tracking', request_method='GET', renderer='json')
+def stop_tracking(request):
+    result = {}
+    try:
+        request.xmlrpc.stop_tracking()
+        result['status'] = 'stopped'
+    except (socket.error, xmlrpclib.Error) as e:
+        result['status'] = 'failed'
+        result['reason'] = e.strerror
     return result
