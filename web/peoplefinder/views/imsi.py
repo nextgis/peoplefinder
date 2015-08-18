@@ -23,7 +23,7 @@ def get_imsi_list(request):
     query = DBSession.query(
         Measure.id,
         Measure.imsi,
-        func.max(Measure.timestamp).label("last")
+        func.max(Measure.timestamp).label('last')
     ).group_by(Measure.imsi).all()
 
     for measure in query:
@@ -54,10 +54,12 @@ def get_imsi_messages(request):
 
     pfnum = request.xmlrpc.get_peoplefinder_number()
     query = HLRDBSession.query(
+        Sms.id,
         Sms.text,
         Sms.src_addr,
         Sms.dest_addr,
-        Sms.created
+        Sms.created,
+        Sms.sent
     ).filter(
         (((Sms.src_addr == Subscriber.extension) & (Sms.dest_addr == pfnum)) |
          ((Sms.dest_addr == Subscriber.extension) & (Sms.src_addr == pfnum))) &
@@ -78,8 +80,10 @@ def get_imsi_messages(request):
 
     for sms in query.all():
         result['sms'].append({
-            'type': 'from' if sms.dest_addr == pfnum else 'to',
-            'text': sms.text
+            'id': sms.id,
+            'text': sms.text,
+            'sent': True if sms.sent else False,
+            'type': 'from' if sms.dest_addr == pfnum else 'to'
         })
 
     return result
