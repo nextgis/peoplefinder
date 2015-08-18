@@ -16,6 +16,10 @@
             'Start Tracking',
             'Stop Tracking'
         ],
+        _waitButtonText: [
+            'Starting...',
+            'Stopping...'
+        ],
         _buttonCss: [
             'start',
             'stop'
