@@ -44,7 +44,6 @@
 
         trackingButtonClickHandler: function () {
             var currentButtonState = this._buttonState,
-                newButtonState = (currentButtonState === 0 ? 1 : 0),
                 runActionTracking;
 
             this.unbindTrackingButtonClick();
@@ -62,7 +61,17 @@
         },
 
         setNewState: function () {
+            var currentButtonState = this._buttonState,
+                newButtonState = (currentButtonState === 0 ? 1 : 0);
 
+            pf.subscriber.publish('observer/tracking/toggle');
+
+            this.$trackingButton
+                .removeClass('wait ' + this._buttonCss[currentButtonState])
+                .addClass(this._buttonCss[newButtonState])
+                .text(this._buttonText[newButtonState]);
+            this._buttonState = newButtonState;
+            this.bindTrackingButtonClick();
         },
 
         failRunActionTracking: function (jqXHR, textStatus) {
@@ -70,6 +79,7 @@
                 .removeClass('wait')
                 .text(this._buttonText[this._buttonState]);
             console.log(jqXHR);
+            this.bindTrackingButtonClick();
         }
     });
 }(jQuery, pf));
