@@ -10,8 +10,8 @@
                 <div class="row">
                     <span class="text-uppercase sub-header">Tracking</span>
                     <div class="inner-row">
-                        <button type="button" id="trackingButton" class="btn btn-primary start">Start Tracking</button>
-                        <button type="button" id="clear-btn" class="btn btn-link btn-xs">Clear Results</button>
+                        <a class="btn btn-primary start" id="trackingButton" href="javascript:void(0)" role="button">Start Tracking</a>
+                        <a class="btn btn-link btn-xs" href="javascript:void(0)" role="button">Clear Results</a>
                     </div>
                 </div>
                 <div class="row">
