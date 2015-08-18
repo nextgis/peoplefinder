@@ -31,7 +31,7 @@
         _buttonState: 0,
 
         bindEvents: function () {
-            pf.view.$trackingButton.click(this.trackingButtonClickHandler);
+            pf.view.$trackingButton.click($.proxy(this.trackingButtonClickHandler, this));
         },
 
         trackingButtonClickHandler: function () {
