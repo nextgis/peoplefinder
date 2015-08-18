@@ -123,3 +123,17 @@ def send_imsi_message(request):
     }
 
     return result
+
+
+@view_config(route_name='start_tracking', request_method='GET', renderer='json')
+def start_tracking(request):
+    import time
+    time.sleep(8)
+    return True
+
+
+@view_config(route_name='stop_tracking', request_method='GET', renderer='json')
+def stop_tracking(request):
+    import time
+    time.sleep(8)
+    return True
