@@ -56,6 +56,17 @@
                 url: this._actionUrl[currentButtonState],
                 dataType: 'json'
             });
+
+            runActionTracking.done($.proxy(this.setNewState, this));
+            runActionTracking.fail($.proxy(this.failRunActionTracking, this));
+        },
+
+        setNewState: function () {
+
+        },
+
+        failRunActionTracking: function (jqXHR, textStatus) {
+
         }
     });
 }(jQuery, pf));
