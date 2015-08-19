@@ -70,7 +70,8 @@ def get_imsi_messages(request):
     while c < sms_count:
         result['sms'].append({
             'type': random.choice(types),
-            'text': time.time() * 1000000
+            'text': time.time() * 1000000,
+            'sent': random.choice([True, False])
         })
         c += 1
 
