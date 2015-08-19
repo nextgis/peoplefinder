@@ -104,6 +104,8 @@ def get_imsi_circles(request):
         Measure.timestamp
     ).filter(
         (Measure.imsi == imsi) &
+        (Measure.gps_lat != None) &
+        (Measure.gps_lon != None) &
         (Measure.timestamp <= datetime.datetime.fromtimestamp(float(timestamp_end) / 1000))
     )
 
