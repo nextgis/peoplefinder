@@ -107,6 +107,11 @@ span.logo {
     color: #774500;
 }
 
+#smsViewer div.sms.to.unsent,
+#smsViewer div.sms.from.unsent {
+    color: #616161;
+}
+
 div.footer {
     font-size: 12px;
     padding: 5px 10px;
