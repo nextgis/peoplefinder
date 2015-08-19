@@ -5,7 +5,6 @@
         _circles: null,
 
         init: function () {
-            pf.viewmodel.trackingActive = false;
             this.bindEvents();
         },
 
@@ -13,16 +12,12 @@
             var context = this;
 
             pf.subscriber.subscribe('observer/tracking/toggle', function () {
-                pf.viewmodel.trackingActive = !pf.viewmodel.trackingActive;
-                if (pf.viewmodel.trackingActive) {
-                    pf.modules.circlesLayer.clearAll();
-                    context.updateCircles();
-                }
+                pf.modules.circlesLayer.clearAll();
+                context.updateCircles();
             }, this);
         },
 
         updateCircles: function (timestampBegin) {
-            if (!pf.viewmodel.trackingActive) return false;
 
             this._timestamp_end = new Date().getTime();
 
@@ -37,7 +32,7 @@
             }
 
             $.ajax({
-                url: pf.settings.root_url + '/imsi/' + selectedImsi +'/circles',
+                url: pf.settings.root_url + '/imsi/' + selectedImsi + '/circles',
                 data: params,
                 dataType: 'json'
             }).done(function (result) {
