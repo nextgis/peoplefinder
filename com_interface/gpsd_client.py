@@ -34,6 +34,9 @@ class GPSDListenerProcess(multiprocessing.Process):
                 continue
 
             for report in self.__session:
+                if self.__time_to_shutdown.is_set():
+                    break
+
                 if report.get(u'class') == u'TPV':
                     lat = report.get(u'lat')
                     lon = report.get(u'lon')
@@ -52,4 +55,5 @@ class GPSDListenerProcess(multiprocessing.Process):
 
                     self.__comms_model.add_gps_meas(time_timestamp, lat, lon)
 
-            self.logger.error("Connection with gpsd lost!")
+            if not self.__time_to_shutdown.is_set():
+                self.logger.error("Connection with gpsd lost!")

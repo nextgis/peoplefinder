@@ -185,6 +185,8 @@ class CommsModel(object):
 
         self.pf_phone_number = "10001"
 
+        self.current_gps = (None, None)
+
     def get_wellcome_message(self, **wargs):
         msg = ("You are connected to a mobile search and rescue team. " +
                "Please SMS to {ph_phone_number} to communicate. " +
@@ -218,6 +220,10 @@ class CommsModel(object):
 
     def add_gps_meas(self, time, lat, lon):
         self.__cc.add(time, lat, lon)
+        self.current_gps = (lat, lon)
+
+    def get_current_gps(self):
+        return self.current_gps
 
 
 class CommsModelManager(BaseManager):

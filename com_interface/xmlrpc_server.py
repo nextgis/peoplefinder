@@ -63,6 +63,7 @@ class XMLRPCProcess(multiprocessing.Process):
         server.register_function(self.get_peoplefinder_number)
         server.register_function(self.start_tracking)
         server.register_function(self.stop_tracking)
+        server.register_function(self.get_current_gps)
 
         server_thread = threading.Thread(target=server.serve_forever)
         server_thread.daemon = True
@@ -73,6 +74,9 @@ class XMLRPCProcess(multiprocessing.Process):
                 self.try_to_connect_to_vty()
 
             time.sleep(0.1)
+
+    def get_current_gps(self):
+        return self.__comms_model.get_current_gps()
 
     def get_peoplefinder_number(self):
         return self.__comms_model.get_pf_phone_number()
