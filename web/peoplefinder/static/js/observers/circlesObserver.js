@@ -11,7 +11,7 @@
         bindEvents: function () {
             var context = this;
 
-            pf.subscriber.subscribe('observer/tracking/toggle', function () {
+            pf.subscriber.subscribe('observer/circles/update', function () {
                 pf.modules.circlesLayer.clearAll();
                 context.updateCircles();
             }, this);

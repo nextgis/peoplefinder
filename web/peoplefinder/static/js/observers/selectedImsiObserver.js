@@ -13,6 +13,7 @@
                 vm.selectedImsi = imsi;
                 pf.subscriber.publish('observer/sms/list/deactivate');
                 pf.subscriber.publish('observer/sms/list/activate');
+                pf.subscriber.publish('observer/circles/update');
             });
         }
     });
