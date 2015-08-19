@@ -15,7 +15,16 @@
         },
 
         addSms: function (imsi, smsItem) {
-            var $smsItem = $('<div class="' + smsItem.type + ' sms">' + smsItem.type + ': ' + smsItem.text + '</div>');
+            var cssClasses = ['sms'],
+                $smsItem;
+
+            cssClasses.push(smsItem.type);
+
+            if (!smsItem.sent) {
+                cssClasses.push('unsent');
+            }
+
+            $smsItem = $('<div class="' + cssClasses.join(' ') + '">' + smsItem.type + ': ' + smsItem.text + '</div>');
             $smsItem.prependTo(pf.view.$smsViewer);
         }
     });
