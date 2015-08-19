@@ -75,7 +75,7 @@ def get_imsi_messages(request):
         })
         c += 1
 
-    result['sms'] = sorted(result['sms'], lambda sms: sms['text'])
+    result['sms'] = sorted(result['sms'], key=lambda sms: sms['text'])
 
     return result
 
