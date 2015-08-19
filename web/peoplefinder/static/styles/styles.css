@@ -42,6 +42,20 @@ span.logo {
   border-color: #742020;
 }
 
+#trackingButton.stop.wait,
+#trackingButton.stop.wait:hover {
+    color: #fff;
+    background-color: #b76664;
+    border-color: #b76664;
+}
+
+#trackingButton.start.wait,
+#trackingButton.start.wait:hover {
+    color: #fff;
+    background-color: #5e8fb7;
+    border-color: #5e8fb7;
+}
+
 #rightPanel span.sub-header {
     color: #000000;
     font-weight: bold;
@@ -91,6 +105,11 @@ span.logo {
 
 #smsViewer div.sms.from {
     color: #774500;
+}
+
+#smsViewer div.sms.to.unsent,
+#smsViewer div.sms.from.unsent {
+    color: #616161;
 }
 
 div.footer {

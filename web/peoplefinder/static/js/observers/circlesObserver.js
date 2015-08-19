@@ -1,28 +1,23 @@
 (function ($, pf, L) {
-    pf.modules.trackingObserver = {};
-    $.extend(pf.modules.trackingObserver, {
+    pf.modules.circlesObserver = {};
+    $.extend(pf.modules.circlesObserver, {
 
         _circles: null,
 
         init: function () {
-            pf.viewmodel.trackingActive = false;
             this.bindEvents();
         },
 
         bindEvents: function () {
             var context = this;
 
-            pf.subscriber.subscribe('observer/tracking/toggle', function () {
-                pf.viewmodel.trackingActive = !pf.viewmodel.trackingActive;
-                if (pf.viewmodel.trackingActive) {
-                    pf.modules.circlesLayer.clearAll();
-                    context.updateCircles();
-                }
+            pf.subscriber.subscribe('observer/circles/update', function () {
+                pf.modules.circlesLayer.clearAll();
+                context.updateCircles();
             }, this);
         },
 
-        updateCircles: function (timestamp_begin) {
-            if (!pf.viewmodel.trackingActive) return false;
+        updateCircles: function (timestampBegin) {
 
             this._timestamp_end = new Date().getTime();
 
@@ -32,12 +27,12 @@
                     timestamp_end: this._timestamp_end
                 };
 
-            if (timestamp_begin) {
-                params['timestamp_begin'] = timestamp_begin;
+            if (timestampBegin) {
+                params['timestamp_begin'] = timestampBegin;
             }
 
             $.ajax({
-                url: pf.settings.root_url + '/imsi/' + selectedImsi +'/circles',
+                url: pf.settings.root_url + '/imsi/' + selectedImsi + '/circles',
                 data: params,
                 dataType: 'json'
             }).done(function (result) {

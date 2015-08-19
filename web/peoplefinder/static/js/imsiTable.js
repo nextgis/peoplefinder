@@ -25,7 +25,6 @@
                     dataType: 'json'
                 },
                 selectionChanged: function (event, data) {
-                    if (pf.viewmodel.trackingActive) return;
                     var $selectedRows = $(this).jtable('selectedRows'),
                         imsiSelected;
                     if ($selectedRows.length > 0) {

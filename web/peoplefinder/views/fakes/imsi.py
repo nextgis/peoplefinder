@@ -70,11 +70,12 @@ def get_imsi_messages(request):
     while c < sms_count:
         result['sms'].append({
             'type': random.choice(types),
-            'text': time.time() * 1000000
+            'text': time.time() * 1000000,
+            'sent': random.choice([True, False])
         })
         c += 1
 
-    result['sms'] = sorted(result['sms'], lambda sms: sms['text'])
+    result['sms'] = sorted(result['sms'], key=lambda sms: sms['text'])
 
     return result
 
@@ -123,3 +124,17 @@ def send_imsi_message(request):
     }
 
     return result
+
+
+@view_config(route_name='start_tracking', request_method='GET', renderer='json')
+def start_tracking(request):
+    import time
+    time.sleep(8)
+    return True
+
+
+@view_config(route_name='stop_tracking', request_method='GET', renderer='json')
+def stop_tracking(request):
+    import time
+    time.sleep(8)
+    return True

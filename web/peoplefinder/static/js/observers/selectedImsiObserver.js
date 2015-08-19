@@ -11,9 +11,9 @@
             var vm = pf.viewmodel;
             pf.subscriber.subscribe('imsi/selected/set', function (imsi) {
                 vm.selectedImsi = imsi;
-                pf.view.$targetImsi.val(imsi);
                 pf.subscriber.publish('observer/sms/list/deactivate');
                 pf.subscriber.publish('observer/sms/list/activate');
+                pf.subscriber.publish('observer/circles/update');
             });
         }
     });

@@ -8,17 +8,10 @@
             </div>
             <div id="rightPanel" class="col-md-4">
                 <div class="row">
-                    <span class="text-uppercase sub-header">Target IMSI</span>
-
-                    <div class="input-group">
-                        <input type="text" id="imsi-input" maxlength="15" class="form-control" placeholder="IMSI"/>
-                        <span class="input-group-addon">
-                            <i class="fa fa-crosshairs"></i>
-                        </span>
-                    </div>
+                    <span class="text-uppercase sub-header">Tracking</span>
                     <div class="inner-row">
-                        <button type="button" id="trackingButton" class="btn btn-primary">Start Tracking</button>
-                        <button type="button" id="clear-btn" class="btn btn-link btn-xs">Clear Results</button>
+                        <a class="btn btn-primary start" id="trackingButton" href="javascript:void(0)" role="button">Start Tracking</a>
+                        <a class="btn btn-link btn-xs" href="javascript:void(0)" role="button">Clear Results</a>
                     </div>
                 </div>
                 <div class="row">
