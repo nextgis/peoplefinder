@@ -21,7 +21,7 @@
             }, this);
         },
 
-        updateCircles: function (timestamp_begin) {
+        updateCircles: function (timestampBegin) {
             if (!pf.viewmodel.trackingActive) return false;
 
             this._timestamp_end = new Date().getTime();
@@ -32,8 +32,8 @@
                     timestamp_end: this._timestamp_end
                 };
 
-            if (timestamp_begin) {
-                params['timestamp_begin'] = timestamp_begin;
+            if (timestampBegin) {
+                params['timestamp_begin'] = timestampBegin;
             }
 
             $.ajax({
