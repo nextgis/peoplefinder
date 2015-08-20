@@ -18,16 +18,21 @@
         _smsItems: {},
         addSms: function (imsi, smsItem) {
             var cssClasses = ['sms'],
+                isOutgoing = (smsItem.type === 'to'),
                 $smsItem;
 
             cssClasses.push(smsItem.type);
 
-            if (!smsItem.sent) {
-                cssClasses.push('unsent');
+            if (!this._smsItems.hasOwnProperty(smsItem.id)) {
+                if (isOutgoing && smsItem.sent === false) { cssClasses.push('unsent'); }
+                $smsItem = $('<div id="sms-' + smsItem.id + '" class="' + cssClasses.join(' ') + '">'
+                    + smsItem.type + ': ' + smsItem.text + '</div>');
+                $smsItem.prependTo(pf.view.$smsViewer);
+                this._smsItems[smsItem.id] = !isOutgoing || (isOutgoing && smsItem.sent);
+            } else if (!this._smsItems[smsItem.id] && isOutgoing && smsItem.sent) {
+                $('#sms-' + smsItem.id).removeClass('unsent');
+                this._smsItems[smsItem.id] = true;
             }
-
-            $smsItem = $('<div id="sms-' + smsItem.id + '" class="' + cssClasses.join(' ') + '">' + smsItem.type + ': ' + smsItem.text + '</div>');
-            $smsItem.prependTo(pf.view.$smsViewer);
         }
     });
 }(jQuery, pf));
