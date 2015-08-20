@@ -63,12 +63,14 @@ def get_imsi_messages(request):
 
     if timestamp_begin:
         sms_count = random.randrange(0, 2)
+        types = ['to']
     else:
         sms_count = random.randrange(1, 10)
 
     c = 0
     while c < sms_count:
         sms = {
+            'id': c,
             'type': random.choice(types),
             'text': time.time() * 1000000
         }
