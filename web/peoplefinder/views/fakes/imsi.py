@@ -68,11 +68,14 @@ def get_imsi_messages(request):
 
     c = 0
     while c < sms_count:
-        result['sms'].append({
+        sms = {
             'type': random.choice(types),
-            'text': time.time() * 1000000,
-            'sent': random.choice([True, False])
-        })
+            'text': time.time() * 1000000
+        }
+        if sms['type'] == 'to':
+            sms['sent'] = random.choice([True, False])
+        result['sms'].append(sms)
+        
         c += 1
 
     result['sms'] = sorted(result['sms'], key=lambda sms: sms['text'])
