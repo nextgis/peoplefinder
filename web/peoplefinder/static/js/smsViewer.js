@@ -12,8 +12,10 @@
 
         clear: function () {
             pf.view.$smsViewer.find('div.sms').remove();
+            this._smsItems = {};
         },
 
+        _smsItems: {},
         addSms: function (imsi, smsItem) {
             var cssClasses = ['sms'],
                 $smsItem;
