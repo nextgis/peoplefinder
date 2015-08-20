@@ -24,7 +24,7 @@
                 cssClasses.push('unsent');
             }
 
-            $smsItem = $('<div class="' + cssClasses.join(' ') + '">' + smsItem.type + ': ' + smsItem.text + '</div>');
+            $smsItem = $('<div id="sms-' + smsItem.id + '" class="' + cssClasses.join(' ') + '">' + smsItem.type + ': ' + smsItem.text + '</div>');
             $smsItem.prependTo(pf.view.$smsViewer);
         }
     });
