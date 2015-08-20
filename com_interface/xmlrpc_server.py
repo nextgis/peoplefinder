@@ -64,6 +64,8 @@ class XMLRPCProcess(multiprocessing.Process):
         server.register_function(self.start_tracking)
         server.register_function(self.stop_tracking)
         server.register_function(self.get_current_gps)
+        server.register_function(self.get_wellcome_message)
+        server.register_function(self.set_wellcome_message)
 
         server_thread = threading.Thread(target=server.serve_forever)
         server_thread.daemon = True
@@ -74,6 +76,13 @@ class XMLRPCProcess(multiprocessing.Process):
                 self.try_to_connect_to_vty()
 
             time.sleep(0.1)
+
+    def get_wellcome_message(self):
+        return self.__comms_model.get_wellcome_message()
+
+    def set_wellcome_message(self, msg):
+        self.__comms_model.set_wellcome_message(msg)
+        return True
 
     def get_current_gps(self):
         return self.__comms_model.get_current_gps()

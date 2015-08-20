@@ -17,6 +17,7 @@ from meas_json_client import MeasJsonListenerProcess
 from osmo_nitb_utils import VTYClient
 from xmlrpc_server import XMLRPCProcess
 from gpsd_client import GPSDListenerProcess
+import editable_parameters
 
 
 # Read queue measurements.
@@ -105,7 +106,7 @@ class MeasHandler(multiprocessing.Process):
                 return
         else:
             self.logger.info("Detect new IMSI. Send welcome message.")
-            if not self._vty_client.send_sms(imsi, self.comms_model.get_wellcome_message(ms_phone_number=extension)):
+            if not self._vty_client.send_sms(imsi, self.comms_model.get_formated_welcom_message(ms_phone_number=extension)):
                 self.logger.error("Welcome message not send.")
 
         self.save_measure_to_db(meas, extension)
@@ -153,6 +154,8 @@ class GPSCoordinatesCollection(object):
 
         self.logger = logging_utils.get_logger("GPSCoordinatesCollection")
 
+        self.add(time.time(), None, None)
+
     def add(self, time, lat, log):
         if self.__count == self.__max_for_save:
             self.__gps_times.pop(0)
@@ -174,30 +177,80 @@ class GPSCoordinatesCollection(object):
 
 class CommsModel(object):
 
-    def __init__(self):
+    def __init__(self, configuration):
+        self.configuration = configuration
+
         self.queue = []
-        self.rlock = multiprocessing.RLock()
 
         self.__cc = GPSCoordinatesCollection()
-        self.__cc.add(time.time(), None, None)
+        self.current_gps = (None, None)
 
         self.logger = logging_utils.get_logger("CommsModel")
 
-        self.pf_phone_number = "10001"
+        self.editable_parameters_config = ConfigParser.ConfigParser()
+        if os.path.exists(editable_parameters.configuration_file_path):
+            self.logger.info("File with editable parameters FOUND!")
+            self.editable_parameters_config.read(editable_parameters.configuration_file_path)
+        else:
+            self.logger.warning("File with editable parameters NOT FOUND! use default parameters!")
 
-        self.current_gps = (None, None)
+            self.editable_parameters_config.add_section(editable_parameters.configuration_section)
 
-    def get_wellcome_message(self, **wargs):
-        msg = ("You are connected to a mobile search and rescue team. " +
-               "Please SMS to {ph_phone_number} to communicate. " +
-               "Your temporary phone number is {ms_phone_number}")
+            self.editable_parameters_config.set(
+                editable_parameters.configuration_section,
+                "pf_phone_number",
+                editable_parameters.pf_phone_number
+            )
 
+            self.editable_parameters_config.set(
+                editable_parameters.configuration_section,
+                "pf_imsi",
+                editable_parameters.pf_imsi
+            )
+            self.save_editable_parameters_config()
+
+            self.set_wellcome_message(editable_parameters.pf_wellcome_message_default)
+            self.set_reply_message(editable_parameters.pf_reply_message_default)
+
+    def get_wellcome_message(self):
+        return self.editable_parameters_config.get(editable_parameters.configuration_section, "pf_wellcome_message_default")
+
+    def get_formated_welcom_message(self, **wargs):
         wargs["ph_phone_number"] = self.pf_phone_number
-
-        return msg.format(**wargs)
+        return self.editable_parameters_config.get(editable_parameters.configuration_section, "pf_wellcome_message_default", wargs)
 
     def get_pf_phone_number(self):
-        return self.pf_phone_number
+        return self.editable_parameters_config.get(editable_parameters.configuration_section, "pf_phone_number")
+
+    def get_pf_imsi(self):
+        return self.editable_parameters_config.get(editable_parameters.configuration_section, "pf_imsi")
+
+    def get_reply_message(self):
+        return self.editable_parameters_config.get(editable_parameters.configuration_section, "pf_reply_message_default")
+
+    def set_wellcome_message(self, msg):
+        self.editable_parameters_config.set(
+            editable_parameters.configuration_section,
+            "pf_wellcome_message_default",
+            msg
+        )
+        self.save_editable_parameters_config()
+
+    def set_reply_message(self, msg):
+        self.editable_parameters_config.set(
+            editable_parameters.configuration_section,
+            "pf_reply_message_default",
+            msg
+        )
+        self.save_editable_parameters_config()
+
+    def save_editable_parameters_config(self):
+        base_dir = os.path.dirname(editable_parameters.configuration_file_path)
+        if not os.path.exists(base_dir):
+            os.makedirs(base_dir)
+
+        with open(editable_parameters.configuration_file_path, 'wb') as configfile:
+            self.editable_parameters_config.write(configfile)
 
     def put_measurement(self, obj):
         lat, lon = self.__cc.get_coordinates(obj['time'])
@@ -215,8 +268,7 @@ class CommsModel(object):
             return None
 
     def number_of_measurements_in_queue(self):
-        with self.rlock:
-            return len(self.queue)
+        return len(self.queue)
 
     def add_gps_meas(self, time, lat, lon):
         self.__cc.add(time, lat, lon)
@@ -279,15 +331,15 @@ if __name__ == "__main__":
     # Init shared objects ====================================================
     manager = CommsModelManager()
     manager.start()
-    comms_model = manager.CommsModel()
+    comms_model = manager.CommsModel(configuration)
 
     # Configurate nitb =======================================================
     pf_phone_number = comms_model.get_pf_phone_number()
-    pf_imsi = 1
+    pf_imsi = comms_model.get_pf_imsi()
 
     vty_client = VTYClient(configuration)
     if vty_client.try_connect() is False:
-        logger.error("Connect to osmo nitb VTY FAIL!")
+        logger.error("Connect to osmo nitb VTY FAILURE!")
         manager.shutdown()
         manager.join()
         sys.exit(1)
@@ -295,7 +347,7 @@ if __name__ == "__main__":
     if vty_client.conf_meas_feed() is True:
         logger.info("Configurate osmo nitb measurements over VTY SUCCESS!")
     else:
-        logger.error("Configurate osmo nitb measurements over VTY FAIL!")
+        logger.error("Configurate osmo nitb measurements over VTY FAILURE!")
         manager.shutdown()
         manager.join()
         sys.exit(1)
@@ -312,7 +364,7 @@ if __name__ == "__main__":
     if len(pf_subscriber) == 0:
         obj = Subscriber(created=datetime.datetime.fromtimestamp(time.time()),
                          updated=datetime.datetime.fromtimestamp(time.time()),
-                         imsi=pf_imsi,
+                         imsi=comms_model.get,
                          name="peoplefinder",
                          extension=pf_phone_number,
                          authorized=1,

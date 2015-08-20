@@ -5,16 +5,14 @@ from sqlalchemy import (
     DateTime,
     Float,
     create_engine,
-    Numeric,
-    LargeBinary,
-    )
+)
 
 from sqlalchemy.ext.declarative import declarative_base
 
 from sqlalchemy.orm import (
     scoped_session,
     sessionmaker,
-    )
+)
 
 from zope.sqlalchemy import ZopeTransactionExtension
 
@@ -38,3 +36,10 @@ class Measure(Base):
     phone_number = Column(Text)
     gps_lat = Column(Float)
     gps_lon = Column(Float)
+
+
+class SearchSession(Base):
+    __tablename__ = 'searchsession'
+    id = Column(Integer, primary_key=True)
+    start = Column(DateTime, nullable=False)
+    finish = Column(DateTime)
