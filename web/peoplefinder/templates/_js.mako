@@ -4,6 +4,7 @@
 <script src="${request.static_url('peoplefinder:static/contrib/jquery-ui/jquery-ui.js')}"></script>
 <script src="${request.static_url('peoplefinder:static/contrib/jtable/jquery.jtable.js')}"></script>
 <script src="${request.static_url('peoplefinder:static/contrib/js-cookie/js.cookie.js')}"></script>
+<script src="${request.static_url('peoplefinder:static/contrib/storageapi/jquery.storageapi.min.js')}"></script>
 <script src="${request.static_url('peoplefinder:static/js/init.js')}"></script>
 <script src="${request.static_url('peoplefinder:static/js/subscriber.js')}"></script>
 <script src="${request.static_url('peoplefinder:static/js/map.js')}"></script>
