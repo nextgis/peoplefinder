@@ -18,4 +18,5 @@ function loadModules() {
     pf.modules.smsSender.init();
     pf.modules.imsiTracking.init();
     pf.modules.circlesObserver.init();
+    pf.modules.unreadSmsStorage.init();
 }
