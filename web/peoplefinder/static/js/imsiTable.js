@@ -2,6 +2,9 @@
     pf.modules.imsiTable = {};
     $.extend(pf.modules.imsiTable, {
 
+        _imsiTable: null,
+        _imsiList: {},
+
         init: function () {
             this.setDom();
             this.buildTable();
@@ -9,11 +12,9 @@
 
         },
 
-
         setDom: function () {
             pf.view.$imsiTable = $('#imsiTable');
         },
-
 
         buildTable: function () {
             pf.view.$imsiTable.jtable({
@@ -51,19 +52,18 @@
                     }
                 }
             });
-            pf.viewmodel.imsiTable = pf.view.$imsiTable.data('hik-jtable');
+            this._imsiTable = pf.view.$imsiTable.data('hik-jtable');
             pf.subscriber.publish('observer/imsi/list/activate');
         },
 
         overwriteJTableMethods: function () {
-            pf.viewmodel.imsiTable._showError = function () {
+            this._imsiTable._showError = function () {
             };
         },
 
         updateTable: function (ismiListFromServer) {
             var context = this,
                 records = ismiListFromServer.Records,
-                imsiTable = pf.viewmodel.imsiTable,
                 imsi;
             $.each(records, function (i, record) {
                 imsi = record.imsi;
@@ -73,7 +73,7 @@
                     }
                 } else {
                     context._imsiList[imsi] = record;
-                    imsiTable.addRecord({
+                    context._imsiTable.addRecord({
                         record: record,
                         clientOnly: true
                     });
