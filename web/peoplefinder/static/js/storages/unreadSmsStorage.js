@@ -48,6 +48,16 @@
             stringifySmsObj = JSON.stringify(readToWriteObj);
             this._unreadSms = stringifySmsObj;
             this._storage.set(this._key, stringifySmsObj, {expires: 365});
+        },
+
+        smsChanged: function (smsObj) {
+            var changed = (JSON.stringify(smsObj) !== this._unreadSms);
+
+            if (changed) {
+                return JSON.parse(this._unreadSms);
+            }
+
+            return changed;
         }
     });
 }(jQuery, pf));
