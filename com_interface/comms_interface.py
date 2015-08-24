@@ -14,135 +14,9 @@ from model.models import bind_session, DBSession, Measure
 from model.hlr import bind_session as bind_hlr_session, HLRDBSession, Subscriber, Sms
 
 from meas_json_client import MeasJsonListenerProcess
-from osmo_nitb_utils import VTYClient
-from xmlrpc_server import XMLRPCProcess
 from gpsd_client import GPSDListenerProcess
-import editable_parameters
-
-
-# Read queue measurements.
-# Add measurement in MeasurementsModel.
-# Send welcome message for new imsi.
-class MeasHandler(multiprocessing.Process):
-    def __init__(self, configuration, comms_model, pf_db_connection_string, hlr_db_connection_string):
-        self.comms_model = comms_model
-        super(MeasHandler, self).__init__(name="MeasHandler")
-        self.__time_to_shutdown = multiprocessing.Event()
-
-        self._pf_db_connection_string = pf_db_connection_string
-        self._hlr_db_connection_string = hlr_db_connection_string
-
-        self.__update_period = 3
-        try:
-            self._vty_client = VTYClient(configuration)
-        except ValueError as err:
-            raise err
-
-    def shutdown(self):
-        self.logger.debug("Shutdown initiated")
-        self.__time_to_shutdown.set()
-
-    def run(self):
-        self.logger = logging_utils.get_logger("MeasHandler")
-
-        bind_session(self._pf_db_connection_string)
-        self.pf_session = DBSession
-
-        bind_hlr_session(self._hlr_db_connection_string)
-        self.hlr_session = HLRDBSession
-
-        self.try_to_connect_to_vty()
-
-        self.start_loop()
-
-    def try_to_connect_to_vty(self):
-        self.logger.info("Try to connect to vty...")
-        if self._vty_client.try_connect():
-            self.logger.info("Success connect to vty!")
-        else:
-            self.logger.info("Fail to connect to vty!")
-
-    def start_loop(self):
-        while not self.__time_to_shutdown.is_set():
-
-            if self._vty_client.is_active() is False:
-                self.try_to_connect_to_vty()
-
-            meas = self.comms_model.get_measurement()
-            if meas is not None:
-                self.process_measure(meas)
-            else:
-                time.sleep(0.1)
-
-    def process_measure(self, meas):
-        self.logger.info("Process meas: IMSI {0}".format(meas['imsi']))
-
-        imsi = meas['imsi']
-
-        extensions = self.hlr_session.query(Subscriber.extension).filter(Subscriber.imsi == imsi).all()
-        if len(extensions) != 1:
-            self.logger.error("HLR struct ERROR imsi {0} not one".format(imsi))
-            return
-        extension = extensions[0][0]
-
-        # sms_comms = self.hlr_session.query(Sms.text).filter(
-        #     ((Sms.src_addr == extension) & (Sms.dest_addr == "10001")) |
-        #     ((Sms.src_addr == "10001") & (Sms.dest_addr == extension))
-        # ).all()
-
-        # self.logger.info("sms_comms: {0}".format(sms_comms))
-        last_measure = self.get_last_measure(imsi)
-
-        if last_measure is not None:
-            self.logger.info("IMSI already detected.")
-
-            last_measure_timestamp = time.mktime(last_measure.timestamp.timetuple())
-            if meas['time'] < last_measure_timestamp:
-                self.logger.info("Ignore measure because: measure is older then one in DB!")
-                return
-
-            if ((meas['time'] - last_measure_timestamp) < self.__update_period) and (last_measure.timing_advance == meas['meas_rep']['L1_TA']):
-                self.logger.info("Ignore measure because: TA is no different from the last mesaure done less then {0} seconds!".format(self.__update_period))
-                return
-        else:
-            self.logger.info("Detect new IMSI. Send welcome message.")
-            if not self._vty_client.send_sms(imsi, self.comms_model.get_formated_welcom_message(ms_phone_number=extension)):
-                self.logger.error("Welcome message not send.")
-
-        self.save_measure_to_db(meas, extension)
-
-    def is_imsi_already_detected(self, imsi):
-        if self.pf_session.query(Measure).filter(Measure.imsi == imsi).count() > 0:
-            return True
-        return False
-
-    def get_last_measure(self, imsi):
-        last_measures = self.pf_session.query(Measure).filter(Measure.imsi == imsi).order_by(Measure.id.desc()).limit(1).all()
-        if len(last_measures) == 0:
-            return None
-        return last_measures[0]
-
-    def save_measure_to_db(self, meas, extension):
-        distance = self.__calculate_distance(long(meas['meas_rep']['L1_TA']))
-
-        with transaction.manager:
-            obj = Measure(imsi=meas['imsi'],
-                          timestamp=datetime.datetime.fromtimestamp(meas['time']),
-                          timing_advance=meas['meas_rep']['L1_TA'],
-                          distance=distance,
-                          phone_number=extension,
-                          gps_lat=meas['lat'],
-                          gps_lon=meas['lon'],
-                          )
-            self.logger.info("Add measure: imsi={0}, ta={1}, lat={2}, lon={3}".format(meas['imsi'], meas['meas_rep']['L1_TA'], meas['lat'], meas['lon']))
-            self.pf_session.add(obj)
-
-    def __calculate_distance(self, ta, te=1.0):
-        return ta * 553 + 553
-
-    def __is_there_sms_from_to(self, src_addr, dest_addr):
-        self.hlr_session.query(Sms.text).filter(
-            (Sms.src_addr == src_addr) & (Sms.dest_addr == dest_addr)).count()
+from comms_interface_server import CommsInterfaceServer
+from sms_server import SMSServer
 
 
 class GPSCoordinatesCollection(object):
@@ -177,82 +51,18 @@ class GPSCoordinatesCollection(object):
 
 class CommsModel(object):
 
-    def __init__(self, configuration):
-        self.configuration = configuration
-
+    def __init__(self):
         self.queue = []
+        self.unknown_adresses_sms = []
 
         self.__cc = GPSCoordinatesCollection()
         self.current_gps = (None, None)
 
         self.logger = logging_utils.get_logger("CommsModel")
 
-        self.editable_parameters_config = ConfigParser.ConfigParser()
-        if os.path.exists(editable_parameters.configuration_file_path):
-            self.logger.info("File with editable parameters FOUND!")
-            self.editable_parameters_config.read(editable_parameters.configuration_file_path)
-        else:
-            self.logger.warning("File with editable parameters NOT FOUND! use default parameters!")
-
-            self.editable_parameters_config.add_section(editable_parameters.configuration_section)
-
-            self.editable_parameters_config.set(
-                editable_parameters.configuration_section,
-                "pf_phone_number",
-                editable_parameters.pf_phone_number
-            )
-
-            self.editable_parameters_config.set(
-                editable_parameters.configuration_section,
-                "pf_imsi",
-                editable_parameters.pf_imsi
-            )
-            self.save_editable_parameters_config()
-
-            self.set_wellcome_message(editable_parameters.pf_wellcome_message_default)
-            self.set_reply_message(editable_parameters.pf_reply_message_default)
-
-    def get_wellcome_message(self):
-        return self.editable_parameters_config.get(editable_parameters.configuration_section, "pf_wellcome_message_default")
-
-    def get_formated_welcom_message(self, **wargs):
-        wargs["ph_phone_number"] = self.pf_phone_number
-        return self.editable_parameters_config.get(editable_parameters.configuration_section, "pf_wellcome_message_default", wargs)
-
-    def get_pf_phone_number(self):
-        return self.editable_parameters_config.get(editable_parameters.configuration_section, "pf_phone_number")
-
-    def get_pf_imsi(self):
-        return self.editable_parameters_config.get(editable_parameters.configuration_section, "pf_imsi")
-
-    def get_reply_message(self):
-        return self.editable_parameters_config.get(editable_parameters.configuration_section, "pf_reply_message_default")
-
-    def set_wellcome_message(self, msg):
-        self.editable_parameters_config.set(
-            editable_parameters.configuration_section,
-            "pf_wellcome_message_default",
-            msg
-        )
-        self.save_editable_parameters_config()
-
-    def set_reply_message(self, msg):
-        self.editable_parameters_config.set(
-            editable_parameters.configuration_section,
-            "pf_reply_message_default",
-            msg
-        )
-        self.save_editable_parameters_config()
-
-    def save_editable_parameters_config(self):
-        base_dir = os.path.dirname(editable_parameters.configuration_file_path)
-        if not os.path.exists(base_dir):
-            os.makedirs(base_dir)
-
-        with open(editable_parameters.configuration_file_path, 'wb') as configfile:
-            self.editable_parameters_config.write(configfile)
-
     def put_measurement(self, obj):
+        self.logger.debug("put_measurement: imsi={0}".format(obj['imsi']))
+
         lat, lon = self.__cc.get_coordinates(obj['time'])
         obj['lat'] = lat
         obj['lon'] = lon
@@ -264,6 +74,15 @@ class CommsModel(object):
     def get_measurement(self):
         if len(self.queue) > 0:
             return self.queue.pop(0)
+        else:
+            return None
+
+    def put_unknown_adresses_sms(self, sms_info):
+        self.unknown_adresses_sms.append(sms_info)
+
+    def get_unknown_adresses_sms(self):
+        if len(self.unknown_adresses_sms) > 0:
+            return self.unknown_adresses_sms.pop(0)
         else:
             return None
 
@@ -282,6 +101,15 @@ class CommsModelManager(BaseManager):
     pass
 CommsModelManager.register('CommsModel', CommsModel)
 
+
+def start_comms_interface_server_process(configuration, comms_model):
+    srv = CommsInterfaceServer(configuration, comms_model, multiprocessing.Event())
+    srv.serve_forever()
+
+
+def start_sms_server(configuration, comms_model):
+    srv = SMSServer(configuration, comms_model)
+    srv.serve_forever()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -331,89 +159,89 @@ if __name__ == "__main__":
     # Init shared objects ====================================================
     manager = CommsModelManager()
     manager.start()
-    comms_model = manager.CommsModel(configuration)
+    comms_model = manager.CommsModel()
 
     # Configurate nitb =======================================================
-    pf_phone_number = comms_model.get_pf_phone_number()
-    pf_imsi = comms_model.get_pf_imsi()
+    # pf_phone_number = comms_model.get_pf_phone_number()
+    # pf_imsi = comms_model.get_pf_imsi()
 
-    vty_client = VTYClient(configuration)
-    if vty_client.try_connect() is False:
-        logger.error("Connect to osmo nitb VTY FAILURE!")
-        manager.shutdown()
-        manager.join()
-        sys.exit(1)
+    # vty_client = VTYClient(configuration)
+    # if vty_client.try_connect() is False:
+    #     logger.error("Connect to osmo nitb VTY FAILURE!")
+    #     manager.shutdown()
+    #     manager.join()
+    #     sys.exit(1)
 
-    if vty_client.conf_meas_feed() is True:
-        logger.info("Configurate osmo nitb measurements over VTY SUCCESS!")
-    else:
-        logger.error("Configurate osmo nitb measurements over VTY FAILURE!")
-        manager.shutdown()
-        manager.join()
-        sys.exit(1)
+    # if vty_client.conf_meas_feed() is True:
+    #     logger.info("Configurate osmo nitb measurements over VTY SUCCESS!")
+    # else:
+    #     logger.error("Configurate osmo nitb measurements over VTY FAILURE!")
+    #     manager.shutdown()
+    #     manager.join()
+    #     sys.exit(1)
 
-    vty_client = None
+    # vty_client = None
 
-    pf_subscriber = HLRDBSession.query(Subscriber).filter(Subscriber.extension == pf_phone_number).all()
-    if len(pf_subscriber) > 1:
-        logger.error("HLR has incorrect structure more then one subscribers with extension {0}".format(pf_phone_number))
-        manager.shutdown()
-        manager.join()
-        sys.exit(1)
+    # pf_subscriber = HLRDBSession.query(Subscriber).filter(Subscriber.extension == pf_phone_number).all()
+    # if len(pf_subscriber) > 1:
+    #     logger.error("HLR has incorrect structure more then one subscribers with extension {0}".format(pf_phone_number))
+    #     manager.shutdown()
+    #     manager.join()
+    #     sys.exit(1)
 
-    if len(pf_subscriber) == 0:
-        obj = Subscriber(created=datetime.datetime.fromtimestamp(time.time()),
-                         updated=datetime.datetime.fromtimestamp(time.time()),
-                         imsi=comms_model.get,
-                         name="peoplefinder",
-                         extension=pf_phone_number,
-                         authorized=1,
-                         lac=1,
-                         )
-        with transaction.manager:
-            HLRDBSession.add(obj)
-            logger.info("Add PF subscriber. imsi: {0}, extension: {1}".format(pf_imsi, pf_phone_number))
+    # if len(pf_subscriber) == 0:
+    #     obj = Subscriber(created=datetime.datetime.fromtimestamp(time.time()),
+    #                      updated=datetime.datetime.fromtimestamp(time.time()),
+    #                      imsi=comms_model.get,
+    #                      name="peoplefinder",
+    #                      extension=pf_phone_number,
+    #                      authorized=1,
+    #                      lac=0,
+    #                      )
+    #     with transaction.manager:
+    #         HLRDBSession.add(obj)
+    #         logger.info("Add PF subscriber. imsi: {0}, extension: {1}".format(pf_imsi, pf_phone_number))
 
-    if len(pf_subscriber) == 1:
-        logger.info("PF subscriber with phone number {0} already created.".format(pf_phone_number))
+    # if len(pf_subscriber) == 1:
+    #     logger.info("PF subscriber with phone number {0} already created.".format(pf_phone_number))
 
     # Init processes =========================================================
     logger.info("Init gpsd listener")
     gpsd_listener = GPSDListenerProcess(comms_model)
 
-    logger.info("Init meas heandler writer")
+    logger.info("Init comms interface server")
     try:
-        meas_handler = MeasHandler(configuration, comms_model, pf_db_conn_str, hlr_db_conn_str)
+        comms_interface_server_process = multiprocessing.Process(target=start_comms_interface_server_process, args=(configuration, comms_model, ))
     except ValueError as err:
-        logger.error("Cann't init measurement handler process server: {0}".format(err.message))
+        logger.error("Cann't init comms interface server: {0}".format(err.message))
+        sys.exit(1)
+
+    logger.info("Init sms server")
+    try:
+        sms_server_process = multiprocessing.Process(target=start_sms_server, args=(configuration, comms_model, ))
+    except ValueError as err:
+        logger.error("Cann't init sms server: {0}".format(err.message))
         sys.exit(1)
 
     logger.info("Init meas_json listener")
     meas_json_listener = MeasJsonListenerProcess(comms_model, args.test_mode)
-
-    logger.info("Init xml-rpc server")
-    try:
-        requsets_server = XMLRPCProcess(configuration, comms_model)
-    except ValueError as err:
-        logger.error("Cann't init xml-rpc server: {0}".format(err.message))
-        sys.exit(1)
 
     # Start processes ========================================================
     gpsd_listener.start()
     logger.info("GPSD listener STARTED with pid: {0}".format(
         gpsd_listener.pid))
 
-    meas_handler.start()
-    logger.info("Meas heandler writer STARTED with pid: {0}".format(
-        meas_handler.pid))
+    sms_server_process.start()
+    logger.info("Sms server STARTED with pid: {0}".format(
+        sms_server_process.pid))
+
+    comms_interface_server_process.start()
+    logger.info("Comms interface server STARTED with pid: {0}".format(
+        comms_interface_server_process.pid))
 
     meas_json_listener.start()
     logger.info("meas_json listener STARTED with pid: {0}".format(
         meas_json_listener.pid))
-
-    requsets_server.start()
-    logger.info("XML-RPC server STARTED with pid: {0}".format(
-        requsets_server.pid))
 
     # Queue statistic ========================================================
     try:
@@ -431,11 +259,11 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         logger.info("KeyboardInterrupt")
 
-        requsets_server.terminate()
-        requsets_server.join()
+        comms_interface_server_process.terminate()
+        comms_interface_server_process.join()
+        gpsd_listener.terminate()
+        gpsd_listener.join()
         meas_json_listener.terminate()
         meas_json_listener.join()
-        meas_handler.terminate()
-        meas_handler.join()
         manager.shutdown()
         manager.join()
