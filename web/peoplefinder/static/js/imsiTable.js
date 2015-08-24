@@ -65,6 +65,14 @@
             var context = this,
                 records = ismiListFromServer.Records,
                 imsi;
+
+            this._updateImsiRows(records);
+        },
+
+        _updateImsiRows: function (records) {
+            var context = this,
+                imsi;
+
             $.each(records, function (i, record) {
                 imsi = record.imsi;
                 if (context._imsiList.hasOwnProperty(imsi)) {
