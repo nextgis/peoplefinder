@@ -1,8 +1,9 @@
+# -*- coding: utf-8 -*-
+from datetime import datetime
 from pyramid.view import view_config
 from sqlalchemy import func
 
 import time
-import datetime
 import xmlrpclib
 import socket
 
@@ -29,7 +30,7 @@ def get_imsi_list(request):
     ).group_by(Measure.imsi).all()
 
     for measure in query:
-        dtime = datetime.datetime.now() - measure.last
+        dtime = datetime.now() - measure.last
         result.append({
             'id': measure.id,
             'imsi': measure.imsi,
@@ -51,8 +52,8 @@ def get_imsi_list(request):
 @view_config(route_name='get_imsi_messages', request_method='GET', renderer='json')
 def get_imsi_messages(request):
     imsi = int(request.matchdict['imsi'])
-    timestamp_begin = request.GET.get('timestamp_begin')
-    timestamp_end = request.GET.get('timestamp_end')
+    ts_begin = request.GET.get('timestamp_begin')
+    ts_end = request.GET.get('timestamp_end')
 
     pfnum = request.xmlrpc.get_peoplefinder_number()
     query = HLRDBSession.query(
@@ -66,27 +67,38 @@ def get_imsi_messages(request):
         (((Sms.src_addr == Subscriber.extension) & (Sms.dest_addr == pfnum)) |
          ((Sms.dest_addr == Subscriber.extension) & (Sms.src_addr == pfnum))) &
         (Subscriber.imsi == imsi) &
-        (Sms.protocol_id != 64) &
-        (Sms.created <= datetime.datetime.fromtimestamp(float(timestamp_end) / 1000))
+        (Sms.protocol_id != 64)
     )
-
-    if timestamp_begin is not None:
-        query = query.filter(
-            Sms.created >= datetime.datetime.fromtimestamp(float(timestamp_begin) / 1000)
-        )
 
     result = {
         'imsi': imsi,
         'sms': []
     }
 
-    for sms in query.all():
-        result['sms'].append({
-            'id': sms.id,
-            'text': sms.text,
-            'sent': True if sms.sent else False,
-            'type': 'from' if sms.dest_addr == pfnum else 'to'
-        })
+    for obj in query.all():
+        sms = {'id': obj.id}
+        direction = 'from' if obj.dest_addr == pfnum else 'to'
+
+        if direction == 'to':
+            sms['sent'] = True if obj.sent else False
+
+        if ts_begin is not None:
+            tsb = datetime.fromtimestamp(float(ts_begin) / 1000)
+        if ts_end is not None:
+            tse = datetime.fromtimestamp(float(ts_end) / 1000)
+
+        if ts_begin is not None and ts_end is not None:
+            if obj.created >= tsb and obj.created <= tse:
+                sms['text'] = obj.text
+                sms['type'] = direction
+        elif ts_begin is None and ts_end is not None:
+            if obj.created <= tse:
+                sms['text'] = obj.text
+                sms['type'] = direction
+        elif ts_begin is None and ts_ens is None:
+            pass
+
+        result['sms'].append(sms)
 
     return result
 
@@ -94,8 +106,8 @@ def get_imsi_messages(request):
 @view_config(route_name='get_imsi_circles', request_method='GET', renderer='json')
 def get_imsi_circles(request):
     imsi = request.matchdict['imsi']
-    timestamp_begin = request.GET.get('timestamp_begin')
-    timestamp_end = request.GET.get('timestamp_end')
+    ts_begin = request.GET.get('timestamp_begin')
+    ts_end = request.GET.get('timestamp_end')
 
     query = DBSession.query(
         Measure.distance,
@@ -106,12 +118,12 @@ def get_imsi_circles(request):
         (Measure.imsi == imsi) &
         (Measure.gps_lat != None) &
         (Measure.gps_lon != None) &
-        (Measure.timestamp <= datetime.datetime.fromtimestamp(float(timestamp_end) / 1000))
+        (Measure.timestamp <= datetime.fromtimestamp(float(ts_end) / 1000))
     )
 
-    if timestamp_begin is not None:
+    if ts_begin is not None:
         query = query.filter(
-            Measure.timestamp >= datetime.datetime.fromtimestamp(float(timestamp_begin) / 1000)
+            Measure.timestamp >= datetime.fromtimestamp(float(ts_begin) / 1000)
         )
 
     result = {

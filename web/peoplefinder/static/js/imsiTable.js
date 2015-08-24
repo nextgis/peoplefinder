@@ -2,6 +2,9 @@
     pf.modules.imsiTable = {};
     $.extend(pf.modules.imsiTable, {
 
+        _imsiTable: null,
+        _imsiList: {},
+
         init: function () {
             this.setDom();
             this.buildTable();
@@ -9,11 +12,9 @@
 
         },
 
-
         setDom: function () {
             pf.view.$imsiTable = $('#imsiTable');
         },
-
 
         buildTable: function () {
             pf.view.$imsiTable.jtable({
@@ -39,7 +40,8 @@
                         title: 'IMSI',
                         list: true,
                         display: function (data) {
-                            return '<span id="imsi-' + data.record.imsi + '">' + data.record.imsi + '</span>';
+                            return '<span id="imsi-' + data.record.imsi + '">' + data.record.imsi +
+                                '</span><span class="unread-sms" id="imsi-sms-' + data.record.imsi + '"></span>';
                         }
                     },
                     last_lur: {
@@ -50,13 +52,33 @@
                     }
                 }
             });
-            pf.viewmodel.imsiTable = pf.view.$imsiTable.data('hik-jtable');
+            this._imsiTable = pf.view.$imsiTable.data('hik-jtable');
             pf.subscriber.publish('observer/imsi/list/activate');
         },
 
         overwriteJTableMethods: function () {
-            pf.viewmodel.imsiTable._showError = function () {
+            this._imsiTable._showError = function () {
             };
+        },
+
+        updateTable: function (ismiListFromServer) {
+            var context = this,
+                records = ismiListFromServer.Records,
+                imsi;
+            $.each(records, function (i, record) {
+                imsi = record.imsi;
+                if (context._imsiList.hasOwnProperty(imsi)) {
+                    if (context._imsiList[imsi].last_lur != record.last_lur) {
+                        $('#imsi-lur-' + imsi).html(record.last_lur);
+                    }
+                } else {
+                    context._imsiList[imsi] = record;
+                    context._imsiTable.addRecord({
+                        record: record,
+                        clientOnly: true
+                    });
+                }
+            });
         }
     });
 }(jQuery, pf));
