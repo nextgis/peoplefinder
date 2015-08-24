@@ -58,6 +58,27 @@
         overwriteJTableMethods: function () {
             pf.viewmodel.imsiTable._showError = function () {
             };
+        },
+
+        updateTable: function (ismiListFromServer) {
+            var context = this,
+                records = ismiListFromServer.Records,
+                imsiTable = pf.viewmodel.imsiTable,
+                imsi;
+            $.each(records, function (i, record) {
+                imsi = record.imsi;
+                if (context._imsiList.hasOwnProperty(imsi)) {
+                    if (context._imsiList[imsi].last_lur != record.last_lur) {
+                        $('#imsi-lur-' + imsi).html(record.last_lur);
+                    }
+                } else {
+                    context._imsiList[imsi] = record;
+                    imsiTable.addRecord({
+                        record: record,
+                        clientOnly: true
+                    });
+                }
+            });
         }
     });
 }(jQuery, pf));
