@@ -79,6 +79,12 @@ span.logo {
     background-color: #eee;
 }
 
+#imsiTable span.unread-sms {
+    display: inline-block;
+    margin: 0 3px 0 0;
+    background-color: #ffa85b;
+}
+
 #smsViewer {
     min-height: 178px;
     max-height: 200px;
