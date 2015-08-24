@@ -39,7 +39,8 @@
                         title: 'IMSI',
                         list: true,
                         display: function (data) {
-                            return '<span id="imsi-' + data.record.imsi + '">' + data.record.imsi + '</span>';
+                            return '<span id="imsi-' + data.record.imsi + '">' + data.record.imsi +
+                                '</span><span class="unread-sms" id="imsi-sms-' + data.record.imsi + '"></span>';
                         }
                     },
                     last_lur: {
