@@ -1,23 +1,15 @@
 from pyramid.view import view_config
-from sqlalchemy import func
-
-import datetime
-
-from model.models import (
-    DBSession,
-    Measure,
-)
 
 
 @view_config(route_name='get_imsi_list', renderer='json')
 def get_imsi_list(request):
     import random
-    count = random.randrange(1, 20)
+    count = random.randrange(1, 10)
     c = 0
     result = []
 
     while c < count:
-        imsi = random.randrange(43534534534534, 43534534534555)
+        imsi = random.randrange(43534534534534, 43534534534545)
         lur = random.randrange(5, 20)
         result.append({
             'id': c,
@@ -40,7 +32,10 @@ def get_imsi_list(request):
 
     return {
         'Result': 'OK',
-        'Records': result
+        'Records': result,
+        'Messages': [
+            {40000000000000: random.randrange(2, 5)}
+        ]
     }
 
 
@@ -58,7 +53,6 @@ def get_imsi_messages(request):
     }
 
     import random
-    import string
     import time
 
     if timestamp_begin:
@@ -97,7 +91,6 @@ def get_imsi_circles(request):
     }
 
     import random
-    import string
 
     if timestamp_begin:
         circles_count = random.randrange(0, 2)
