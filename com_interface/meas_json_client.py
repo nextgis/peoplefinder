@@ -15,7 +15,7 @@ class MeasJsonListenerProcess(multiprocessing.Process):
                  queue_measurement,
                  test_mode=False):
         self.queue_measurement = queue_measurement
-        super(MeasJsonListenerProcess, self).__init__()
+        super(MeasJsonListenerProcess, self).__init__(name="MeasJsonListenerProcess")
 
         self.__time_to_shutdown = multiprocessing.Event()
         self.__test_mode = test_mode
@@ -74,10 +74,6 @@ class MeasJsonListenerProcess(multiprocessing.Process):
                                   "IMSI not found. \n" +
                                   "Data:{0}".format(data_str))
                 return
-
-            # if data["meas_rep"]["NR"] != 1 or data["meas_rep"]["NR"] != 0:
-            #     self.logger.warning("Measure filtered. Because NR != 1.")
-            #     return
 
             self.queue_measurement.put_measurement(data)
 
