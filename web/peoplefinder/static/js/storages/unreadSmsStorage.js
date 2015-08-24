@@ -5,7 +5,7 @@
         _unreadSms: {'_verify': ''},
         _storage: null,
         init: function () {
-            this._storage = this._localStorageAvailable() ? $.localStorage : $.cookieStorage;
+            this._storage = this._localStorageAvailable() ? pf.modules.localStorage : Cookies;
             this.createUnreadSmsStorage();
         },
 
@@ -16,7 +16,7 @@
             if (verifiedValue) {
                 return verifiedValue;
             } else {
-                this.set(null);
+                this.saveMessagesCount(null);
             }
         },
 
@@ -38,7 +38,7 @@
             return valueVerified ? jsonStorage : false;
         },
 
-        set: function (messagesSmsObj) {
+        saveMessagesCount: function (messagesSmsObj) {
             var readToWriteObj;
             if (messagesSmsObj) {
                 readToWriteObj = $.extend({'_verify': ''}, messagesSmsObj);
@@ -47,7 +47,7 @@
             }
 
             this._unreadSms = readToWriteObj;
-            this._storage.set(this._key, JSON.stringify(readToWriteObj));
+            this._storage.set(this._key, JSON.stringify(readToWriteObj), {expires: 365});
         },
 
         _localStorageAvailable: function () {
