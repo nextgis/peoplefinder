@@ -14,7 +14,7 @@
                 verifiedValue = this.verifyValueFromStorage(valueFromStorage);
 
             if (verifiedValue) {
-                return verifiedValue;
+                this._unreadSms = verifiedValue;
             } else {
                 this.saveMessagesCount(null);
             }
@@ -25,9 +25,7 @@
                 valueVerified = false;
 
             try {
-                jsonStorage = toString.call(valueFromStorage) == '[object String]' ?
-                    JSON.parse(valueFromStorage) :
-                    valueFromStorage;
+                jsonStorage = JSON.parse(valueFromStorage);
                 if (jsonStorage.hasOwnProperty('_verify')) {
                     valueVerified = true;
                 }
@@ -35,19 +33,21 @@
                 console.log('_unreadSms parsing is failed');
             }
 
-            return valueVerified ? jsonStorage : false;
+            return valueVerified ? valueFromStorage : false;
         },
 
         saveMessagesCount: function (messagesSmsObj) {
-            var readToWriteObj;
+            var readToWriteObj,
+                stringifySmsObj;
             if (messagesSmsObj) {
                 readToWriteObj = $.extend({'_verify': ''}, messagesSmsObj);
             } else {
                 readToWriteObj = {'_verify': ''};
             }
 
-            this._unreadSms = readToWriteObj;
-            this._storage.set(this._key, JSON.stringify(readToWriteObj), {expires: 365});
+            stringifySmsObj = JSON.stringify(readToWriteObj);
+            this._unreadSms = stringifySmsObj;
+            this._storage.set(this._key, stringifySmsObj, {expires: 365});
         }
     });
 }(jQuery, pf));
