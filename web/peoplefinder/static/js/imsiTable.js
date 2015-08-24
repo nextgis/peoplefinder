@@ -62,13 +62,8 @@
         },
 
         updateTable: function (ismiListFromServer) {
-            var context = this,
-                records = ismiListFromServer.Records,
-                messages = ismiListFromServer.Messages,
-                imsi;
-
-            this._updateImsiRows(records);
-            this._updateUnreadMessages(messages);
+            this._updateImsiRows(ismiListFromServer.Records);
+            this._updateUnreadMessages(ismiListFromServer.Messages);
         },
 
         _updateImsiRows: function (records) {
