@@ -5,7 +5,7 @@
         _unreadSms: {'_verify': ''},
         _storage: null,
         init: function () {
-            this._storage = this._localStorageAvailable() ? pf.modules.localStorage : Cookies;
+            this._storage = pf.modules.localStorage.isAvailable() ? pf.modules.localStorage : Cookies;
             this.createUnreadSmsStorage();
         },
 
@@ -48,17 +48,6 @@
 
             this._unreadSms = readToWriteObj;
             this._storage.set(this._key, JSON.stringify(readToWriteObj), {expires: 365});
-        },
-
-        _localStorageAvailable: function () {
-            var test = 'pf.test';
-            try {
-                localStorage.setItem(test, test);
-                localStorage.removeItem(test);
-                return true;
-            } catch (e) {
-                return false;
-            }
         }
     });
 }(jQuery, pf));

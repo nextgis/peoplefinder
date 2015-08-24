@@ -15,6 +15,17 @@
             } else {
                 localStorage.setItem(key, value);
             }
+        },
+
+        isAvailable: function () {
+            var test = 'pf.test';
+            try {
+                localStorage.setItem(test, test);
+                localStorage.removeItem(test);
+                return true;
+            } catch (e) {
+                return false;
+            }
         }
     });
 }(jQuery, pf));
