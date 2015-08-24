@@ -64,9 +64,11 @@
         updateTable: function (ismiListFromServer) {
             var context = this,
                 records = ismiListFromServer.Records,
+                messages = ismiListFromServer.Messages,
                 imsi;
 
             this._updateImsiRows(records);
+            this._updateUnreadMessages(messages);
         },
 
         _updateImsiRows: function (records) {
@@ -87,6 +89,10 @@
                     });
                 }
             });
+        },
+
+        _updateUnreadMessages: function (messages) {
+
         }
     });
 }(jQuery, pf));
