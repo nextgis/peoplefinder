@@ -4,6 +4,14 @@
     <div class="container">
         <div class="row margin-top-10 margin-bottom-10">
             <h1 class="text-uppercase">Configuration</h1>
+
+            <h2 class="text-uppercase">Downloading tiles</h2>
+
+            <div class="col-md-8">
+                <div id="mapDownloading"></div>
+            </div>
+            <h2 class="text-uppercase">Other settings</h2>
+
             <form>
                 <div class="form-group">
                     <label for="welcome">Welcome message</label>
