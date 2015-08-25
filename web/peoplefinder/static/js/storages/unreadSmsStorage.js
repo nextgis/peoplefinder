@@ -2,6 +2,7 @@
     pf.modules.unreadSmsStorage = {};
     $.extend(pf.modules.unreadSmsStorage, {
         _key: 'pf:unreadSms',
+        _currentSmsState: null,
         _unreadSms: {'_verify': ''},
         _storage: null,
         init: function () {
@@ -16,7 +17,7 @@
             if (verifiedValue) {
                 this._unreadSms = verifiedValue;
             } else {
-                this.saveMessagesCount(null);
+                this.initStorage();
             }
         },
 
@@ -36,6 +37,10 @@
             return valueVerified ? valueFromStorage : false;
         },
 
+        initStorage: function () {
+            this._storage.set(this._key, this._unreadSms, {expires: 365});
+        },
+
         saveMessagesCount: function (messagesSmsObj) {
             var readToWriteObj,
                 stringifySmsObj;
@@ -51,13 +56,11 @@
         },
 
         smsChanged: function (smsObj) {
-            var changed = (JSON.stringify(smsObj) !== this._unreadSms);
-
-            if (changed) {
-                return JSON.parse(this._unreadSms);
+            var smsChanged = JSON.stringify(smsObj) !== this._currentSmsState;
+            if (smsChanged) {
+                this._currentSmsState = JSON.stringify(smsObj);
             }
-
-            return changed;
+            return smsChanged;
         }
     });
 }(jQuery, pf));
