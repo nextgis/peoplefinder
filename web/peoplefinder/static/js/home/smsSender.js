@@ -46,9 +46,13 @@
                 url: pf.settings.root_url + '/imsi/' + imsi + '/message',
                 data: text,
                 method: 'POST'
-            }).done(function () {
-                context.activateControls();
-                context.$smsSenderMessage.val('');
+            }).done(function (result) {
+                if (result.status === 'failed') {
+                    context.activateControls();
+                } else {
+                    context.activateControls();
+                    context.$smsSenderMessage.val('');
+                }
             }).fail(function () {
                 context.activateControls();
             });
