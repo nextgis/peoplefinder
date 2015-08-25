@@ -21,7 +21,7 @@
                     <label for="silentSms">Silent SMS interval</label>
                     <input type="number" class="form-control" id="silentSms">
                 </div>
-                <button type="submit" class="btn btn-default">Submit</button>
+                <button type="submit" class="btn btn-primary">Submit</button>
             </form>
         </div>
     </div>
