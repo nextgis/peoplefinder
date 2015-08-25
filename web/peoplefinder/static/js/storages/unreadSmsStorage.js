@@ -2,18 +2,17 @@
     pf.modules.unreadSmsStorage = {};
     $.extend(pf.modules.unreadSmsStorage, {
         _key: 'pf:unreadSms',
-        _currentSmsState: null,
+        _currentSmsState: '',
         _unreadSms: {'_verify': ''},
         _storage: null,
         init: function () {
             this._storage = pf.modules.localStorage.isAvailable() ? pf.modules.localStorage : Cookies;
-            this.createUnreadSmsStorage();
+            this.loadUnreadSmsStorage();
         },
 
         loadUnreadSmsStorage: function () {
             var valueFromStorage = this._storage.get(this._key),
                 verifiedValue = this.verifyValueFromStorage(valueFromStorage);
-
             if (verifiedValue) {
                 this._unreadSms = verifiedValue;
             } else {
