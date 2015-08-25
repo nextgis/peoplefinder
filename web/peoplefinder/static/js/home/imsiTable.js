@@ -45,7 +45,7 @@
                         }
                     },
                     last_lur: {
-                        title: 'Last LUR (minutes ago)',
+                        title: 'Last activity',
                         display: function (data) {
                             return '<span id="imsi-lur-' + data.record.imsi + '">' + data.record.last_lur + '</span>';
                         }
