@@ -86,6 +86,11 @@
             });
         },
 
+        updateUnreadSmsCount: function (imsi, unreadSmsCount) {
+            var unreadSmsText = unreadSmsCount > 0 ? '+ ' + unreadSmsCount + ' sms' : '';
+            $('#imsi-sms-' + imsi).text(unreadSmsText);
+        },
+
         _updateUnreadMessages: function (messages) {
             pf.modules.unreadSmsStorage.updateUnreadMessages(messages);
         }
