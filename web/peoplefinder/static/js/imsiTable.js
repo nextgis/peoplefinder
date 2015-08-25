@@ -87,7 +87,7 @@
         },
 
         _updateUnreadMessages: function (messages) {
-
+            pf.modules.unreadSmsStorage.updateUnreadMessages(messages);
         }
     });
 }(jQuery, pf));

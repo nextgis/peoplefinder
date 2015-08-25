@@ -34,11 +34,15 @@
                 console.log('_unreadSms parsing is failed');
             }
 
-            return valueVerified ? valueFromStorage : false;
+            return valueVerified ? jsonStorage : false;
         },
 
         initStorage: function () {
             this._storage.set(this._key, this._unreadSms, {expires: 365});
+        },
+
+        updateUnreadMessages: function (messagesFromServer) {
+
         },
 
         saveMessagesCount: function (messagesSmsObj) {
