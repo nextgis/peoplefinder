@@ -22,6 +22,7 @@ from model.hlr import (
 @view_config(route_name='get_imsi_list', request_method='GET', renderer='json')
 def get_imsi_list(request):
     result = []
+    messages = []
 
     query = DBSession.query(
         Measure.id,
@@ -37,6 +38,27 @@ def get_imsi_list(request):
             'last_lur': dtime.total_seconds() // 60
         })
 
+
+    # Calculate message count for each IMSI
+    imsi_list = map(lambda item: item['imsi'], result);
+    query = HLRDBSession.query(
+        Subscriber.imsi,
+        func.count(Sms.id).label('sms_count')
+    ).filter((
+        (Sms.src_addr == Subscriber.extension) |
+        (Sms.dest_addr == Subscriber.extension)) &
+        (Subscriber.imsi.in_(imsi_list))
+    ).group_by(
+        Subscriber.imsi
+    ).all()
+
+    for record in query:
+        messages.append({
+            'imsi': int(record.imsi),
+            'count': record.sms_count
+        })
+
+
     if 'jtSorting' in request.GET:
         sorting_params = request.GET['jtSorting'].split(' ')
         sorting_field = sorting_params[0]
@@ -45,7 +67,8 @@ def get_imsi_list(request):
 
     return {
         'Result': 'OK',
-        'Records': result
+        'Records': result,
+        'Messages': messages
     }
 
 
