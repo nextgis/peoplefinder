@@ -76,8 +76,6 @@ def get_imsi_list(request):
 @view_config(route_name='get_imsi_messages', request_method='GET', renderer='json')
 def get_imsi_messages(request):
     imsi = int(request.matchdict['imsi'])
-    ts_begin = request.GET.get('timestamp_begin')
-    ts_end = request.GET.get('timestamp_end')
 
     pfnum = request.xmlrpc.get_peoplefinder_number()
     query = HLRDBSession.query(
@@ -100,27 +98,15 @@ def get_imsi_messages(request):
     }
 
     for obj in query.all():
-        sms = {'id': obj.id}
         direction = 'from' if obj.dest_addr == pfnum else 'to'
+        sms = {
+            'id': obj.id,
+            'text': obj.text,
+            'type': direction
+        }
 
         if direction == 'to':
             sms['sent'] = True if obj.sent else False
-
-        if ts_begin is not None:
-            tsb = datetime.fromtimestamp(float(ts_begin) / 1000)
-        if ts_end is not None:
-            tse = datetime.fromtimestamp(float(ts_end) / 1000)
-
-        if ts_begin is not None and ts_end is not None:
-            if obj.created >= tsb and obj.created <= tse:
-                sms['text'] = obj.text
-                sms['type'] = direction
-        elif ts_begin is None and ts_end is not None:
-            if obj.created <= tse:
-                sms['text'] = obj.text
-                sms['type'] = direction
-        elif ts_begin is None and ts_ens is None:
-            pass
 
         result['sms'].append(sms)
 
