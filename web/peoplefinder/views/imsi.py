@@ -47,6 +47,7 @@ def get_imsi_list(request):
     ).filter((
         (Sms.src_addr == Subscriber.extension) |
         (Sms.dest_addr == Subscriber.extension)) &
+        (Sms.protocol_id != 64) &
         (Subscriber.imsi.in_(imsi_list))
     ).group_by(
         Subscriber.imsi
