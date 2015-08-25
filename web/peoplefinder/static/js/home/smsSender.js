@@ -14,22 +14,37 @@
 
         bindEvents: function () {
             var context = this,
+                viemodel = pf.viewmodel,
                 view = pf.view;
+
             view.$sendSms.click(function () {
-                var smsText = view.$smsSenderMessage.val();
-                if (smsText.length > 0) {
-                    context.sendSms(pf.viewmodel.selectedImsi, smsText);
-                    view.$smsSenderMessage.val('');
-                }
+                var $smsSenderMessage = view.$smsSenderMessage,
+                    smsText = $smsSenderMessage.val();
+                context.sendSms(viemodel.selectedImsi, smsText);
+                $smsSenderMessage.val('');
+            });
+
+            view.$smsSenderMessage.keypress(function (e) {
+                if (e.which !== 13) return;
+                var $smsSenderMessage = view.$smsSenderMessage,
+                    smsText = $smsSenderMessage.val();
+                context.sendSms(viemodel.selectedImsi, smsText);
+
             });
         },
 
         sendSms: function (imsi, text) {
+            if (text.length = 0 || !imsi) {
+                return false;
+            }
+
             $.ajax({
                 url: pf.settings.root_url + '/imsi/' + imsi + '/message',
                 data: text,
                 method: 'POST'
             }).done(function () {
+                $smsSenderMessage.val('');
+            }, function () {
 
             });
         }
