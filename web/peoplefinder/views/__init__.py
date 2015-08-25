@@ -6,6 +6,6 @@ def home(request):
     return {}
 
 
-@view_config(route_name='settings', renderer='settings.mako')
-def settings(request):
+@view_config(route_name='configuration', renderer='configuration.mako')
+def configuration(request):
     return {}
