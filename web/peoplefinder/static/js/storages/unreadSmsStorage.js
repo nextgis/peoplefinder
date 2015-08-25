@@ -10,7 +10,7 @@
             this.createUnreadSmsStorage();
         },
 
-        createUnreadSmsStorage: function () {
+        loadUnreadSmsStorage: function () {
             var valueFromStorage = this._storage.get(this._key),
                 verifiedValue = this.verifyValueFromStorage(valueFromStorage);
 
