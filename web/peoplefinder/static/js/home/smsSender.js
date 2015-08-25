@@ -2,14 +2,17 @@
     pf.modules.smsSender = {};
     $.extend(pf.modules.smsSender, {
 
+        $smsSenderMessage: null,
+        $sendSms: null,
+
         init: function () {
             this.setDom();
             this.bindEvents();
         },
 
         setDom: function () {
-            pf.view.$smsSenderMessage = $('#smsSenderMessage');
-            pf.view.$sendSms = $('#sendSms');
+            this.$smsSenderMessage = $('#smsSenderMessage');
+            this.$sendSms = $('#sendSms');
         },
 
         bindEvents: function () {
@@ -17,16 +20,16 @@
                 viemodel = pf.viewmodel,
                 view = pf.view;
 
-            view.$sendSms.click(function () {
-                var $smsSenderMessage = view.$smsSenderMessage,
+            this.$sendSms.click(function () {
+                var $smsSenderMessage = context.$smsSenderMessage,
                     smsText = $smsSenderMessage.val();
                 context.sendSms(viemodel.selectedImsi, smsText);
                 $smsSenderMessage.val('');
             });
 
-            view.$smsSenderMessage.keypress(function (e) {
+            this.$smsSenderMessage.keypress(function (e) {
                 if (e.which !== 13) return;
-                var $smsSenderMessage = view.$smsSenderMessage,
+                var $smsSenderMessage = context.$smsSenderMessage,
                     smsText = $smsSenderMessage.val();
                 context.sendSms(viemodel.selectedImsi, smsText);
 
@@ -43,7 +46,7 @@
                 data: text,
                 method: 'POST'
             }).done(function () {
-                $smsSenderMessage.val('');
+
             }, function () {
 
             });
