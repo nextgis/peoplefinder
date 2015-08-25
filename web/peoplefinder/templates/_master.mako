@@ -24,8 +24,8 @@
                 </div>
                 <div class="navbar-collapse collapse" id="navbar-collapse-1" style="margin-top:20px;">
                     <ul class="nav navbar-nav navbar-right">
-                        <li><a href="#"><i class="fa fa-location-arrow"></i></a></li>
-                        <li><a href="#"><i class="fa fa-cog"></i></a></li>
+                        <li><a href="${request.route_url('home')}"><i class="fa fa-location-arrow"></i></a></li>
+                        <li><a href="${request.route_url('configuration')}"><i class="fa fa-cog"></i></a></li>
                     </ul>
                 </div>
             </div>
