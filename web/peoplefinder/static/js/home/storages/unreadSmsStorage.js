@@ -9,6 +9,7 @@
         init: function () {
             this._storage = pf.modules.localStorage.isAvailable() ? pf.modules.localStorage : Cookies;
             this.loadUnreadSmsStorage();
+            this.bindEvents();
         },
 
         loadUnreadSmsStorage: function () {
@@ -19,6 +20,16 @@
             } else {
                 this.initStorage();
             }
+        },
+
+        bindEvents: function () {
+            var context = this;
+            pf.subscriber.subscribe('messages/unread/reset', function (imsi) {
+                if (context._unreadSms.hasOwnProperty(imsi)) {
+                    context._unreadSms[imsi]._u = 0;
+                    pf.modules.imsiTable.updateUnreadSmsCount(imsi, context._unreadSms[imsi]._u);
+                }
+            });
         },
 
         verifyValueFromStorage: function (valueFromStorage) {
@@ -72,6 +83,9 @@
                 messageServerCount = serverMessageItem.count;
                 if (context._unreadSms.hasOwnProperty(imsi)) {
                     unreadSmsItem = context._unreadSms[imsi];
+                    if (imsi === pf.viewmodel.selectedImsi) {
+                        unreadSmsItem._a = messageServerCount;
+                    }
                     allCount = unreadSmsItem._a;
                     unreadCount = unreadSmsItem._u;
                     unreadSmsItem._a = messageServerCount;
