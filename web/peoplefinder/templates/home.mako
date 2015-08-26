@@ -8,6 +8,10 @@
     % endif
 </%block>
 
+<%block name="gps_status">
+    <li class="gps-status"><a id="gpsStatus" href="${request.route_url('home')}"><i class="fa fa-globe fa-lg"></i></a></li>
+</%block>
+
 <div id="body">
     <div class="container">
         <div class="row margin-top-10 margin-bottom-10">
