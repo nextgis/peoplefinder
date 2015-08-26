@@ -12,6 +12,23 @@ div.navbar-header a:hover {
     text-decoration: none;
 }
 
+#gpsStatus {
+    color: #00d100;
+}
+
+#gpsStatus.no {
+    color: #878787;
+}
+
+#gpsStatus.failed {
+    color: red;
+}
+
+#header li.gps-status>a:focus,
+#header li.gps-status>a:hover {
+    background-color: white;
+}
+
 span.logo {
     font-weight: 700;
     font-size: 40px;
@@ -104,6 +121,20 @@ span.logo {
 
 #smsViewer.no-sms div.no-sms {
     display: none;
+}
+
+#smsViewer div.sms {
+    margin-bottom: 5px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+#smsViewer div.sms span {
+    font-size: 14px;
+    font-weight: normal;
+    display: inline-block;
+    margin-left: 10px;
+    line-height: 1em;
 }
 
 #smsViewer div.sms.to {

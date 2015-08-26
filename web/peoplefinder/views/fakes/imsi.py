@@ -33,7 +33,7 @@ def get_imsi_list(request):
     return {
         'Result': 'OK',
         'Records': result,
-        'GpsStatus': random.choice([True, False]),
+        'GpsStatus': random.choice(['yes', 'no', 'failed']),
         'Messages': [
             {
                 'imsi': 40000000000000,

@@ -12,3 +12,4 @@
 <script src="${request.static_url('peoplefinder:static/js/home/observers/selectedImsiObserver.js')}"></script>
 <script src="${request.static_url('peoplefinder:static/js/home/observers/smsListObserver.js')}"></script>
 <script src="${request.static_url('peoplefinder:static/js/home/observers/circlesObserver.js')}"></script>
+<script src="${request.static_url('peoplefinder:static/js/home/observers/gpsStatusObserver.js')}"></script>
