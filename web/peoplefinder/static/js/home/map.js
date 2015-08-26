@@ -6,6 +6,7 @@
             this.setDom();
             this.buildMap();
             this.addOsmLayer();
+            this.setInitialView();
         },
 
 
@@ -15,7 +16,12 @@
 
 
         buildMap: function () {
-            pf.viewmodel.map = L.map('map').setView([-26.017, 139.219], 4);
+            pf.viewmodel.map = L.map('map');
+        },
+
+
+        setInitialView: function () {
+            pf.viewmodel.map.setView([-26.017, 139.219], 4);
         },
 
 
