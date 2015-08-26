@@ -31,6 +31,7 @@
                     if ($selectedRows.length > 0) {
                         imsiSelected = $selectedRows.find('span').attr('id').split('-')[1];
                         pf.subscriber.publish('imsi/selected/set', [imsiSelected]);
+                        pf.subscriber.publish('messages/unread/reset', [imsiSelected]);
                     }
                 },
                 selecting: true,

@@ -48,12 +48,14 @@
                 method: 'POST'
             }).done(function (result) {
                 if (result.status === 'failed') {
+                    alert("You can't send the message at this moment.");
                     context.activateControls();
                 } else {
                     context.activateControls();
                     context.$smsSenderMessage.val('');
                 }
             }).fail(function () {
+                alert("You can't send the message at this moment.");
                 context.activateControls();
             });
         },
