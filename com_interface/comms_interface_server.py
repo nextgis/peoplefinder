@@ -108,7 +108,7 @@ class CommsInterfaceServer(object):
         config = ConfigParser.ConfigParser()
         config.add_section('editable_parameters')
         config.set('editable_parameters', 'wellcome_message', self.pf_wellcome_message)
-        config.get('editable_parameters', 'reply_message', self.pf_reply_message)
+        config.set('editable_parameters', 'reply_message', self.pf_reply_message)
 
         with open(self.pf_editable_parameters_save_path, 'wb') as configfile:
             config.write(configfile)
@@ -146,11 +146,11 @@ class CommsInterfaceServer(object):
 
         self.xmlrpc_server.register_function(self.vty_send_sms, "send_sms")
         self.xmlrpc_server.register_function(self.vty_send_silent_sms, "send_silent_sms")
-        self.xmlrpc_server.register_function(lambda: self.editable_parameters["pf_phone_number"], "get_peoplefinder_number")
+        self.xmlrpc_server.register_function(lambda: self.pf_phone_number, "get_peoplefinder_number")
         self.xmlrpc_server.register_function(self.start_tracking)
         self.xmlrpc_server.register_function(self.stop_tracking)
         self.xmlrpc_server.register_function(self.measure_model.get_current_gps)
-        self.xmlrpc_server.register_function(lambda: self.editable_parameters["wellcome_message"], "get_wellcome_message")
+        self.xmlrpc_server.register_function(lambda: self.pf_wellcome_message, "get_wellcome_message")
         self.xmlrpc_server.register_function(self.xmlrpc_set_welcome_message, "set_wellcome_message")
         self.xmlrpc_server.register_function(self.xmlrpc_set_parameters, "set_parameters")
 
@@ -159,7 +159,7 @@ class CommsInterfaceServer(object):
         self.xmlrpc_thread.start()
 
     def xmlrpc_set_welcome_message(self, msg):
-        self.editable_parameters.update({"wellcome_message": msg})
+        self.pf_wellcome_message = msg
         return True
 
     def xmlrpc_set_parameters(self, parameters):
@@ -234,8 +234,8 @@ class CommsInterfaceServer(object):
         self.save_measure_to_db(meas, extension)
 
     def get_formated_welcome_message(self, **wargs):
-        wargs["ph_phone_number"] = self.editable_parameters["pf_phone_number"]
-        return self.editable_parameters["wellcome_message"].format(**wargs)
+        wargs["ph_phone_number"] = self.pf_phone_number
+        return self.pf_wellcome_message.format(**wargs)
 
     def get_last_measure(self, imsi):
         last_measures = self.pf_session.query(Measure).filter(Measure.imsi == imsi).order_by(Measure.id.desc()).limit(1).all()
@@ -271,7 +271,7 @@ class CommsInterfaceServer(object):
             sms_info = self.measure_model.get_unknown_adresses_sms()
             if sms_info is not None:
                 self.logger.info("Process sms {0}".format(sms_info))
-                reply_msg = self.editable_parameters["reply_message"]
+                reply_msg = self.pf_reply_message
 
                 self.logger.debug("Send reply message: {0}".format(reply_msg))
 
@@ -289,7 +289,7 @@ class CommsInterfaceServer(object):
         return True
 
     def get_peoplefinder_number(self):
-        return self.editable_parameters["pf_phone_number"]
+        return self.pf_phone_number
 
     def start_tracking(self):
         self.__imis_reday_for_silent_sms_list = Queue.Queue()
@@ -345,7 +345,7 @@ class CommsInterfaceServer(object):
             ).group_by(
                 Sms.dest_addr
             ).filter(
-                Subscriber.extension != self.editable_parameters["pf_phone_number"]
+                Subscriber.extension != self.pf_phone_number
             ).all()
 
             for (imsi, dest_addr, sent, created) in sub_sms:
@@ -392,7 +392,7 @@ class CommsInterfaceServer(object):
             self.logger.error("Connection to VTY is not established")
             return False
 
-        cmd = 'subscriber imsi {0}  silent-sms sender extension {1} send "silent hello"\n'.format(imsi, self.editable_parameters["pf_phone_number"])
+        cmd = 'subscriber imsi {0}  silent-sms sender extension {1} send "silent hello"\n'.format(imsi, self.pf_phone_number)
         self.logger.debug("VTY command: {0}".format(cmd))
         try:
             self.vty_client_connection.write(cmd)
@@ -411,7 +411,7 @@ class CommsInterfaceServer(object):
                 self.logger.error("Connection to VTY is not established")
                 return False
 
-            cmd = 'subscriber imsi {0} sms sender extension {1} send {2}\n'.format(imsi, self.editable_parameters["pf_phone_number"], text)
+            cmd = 'subscriber imsi {0} sms sender extension {1} send {2}\n'.format(imsi, self.pf_phone_number, text)
             self.logger.debug("VTY command: {0}".format(cmd))
             try:
                 self.vty_client_connection.write(cmd)
@@ -429,7 +429,7 @@ class CommsInterfaceServer(object):
             self.logger.error("Connection to VTY is not established")
             return False
 
-        cmd = 'subscriber extension {0} sms sender extension {1} send {2}\n'.format(extension, self.editable_parameters["pf_phone_number"], text)
+        cmd = 'subscriber extension {0} sms sender extension {1} send {2}\n'.format(extension, self.pf_phone_number, text)
         self.logger.debug("VTY command: {0}".format(cmd))
         try:
             self.vty_client_connection.write(cmd)
