@@ -12,6 +12,23 @@ div.navbar-header a:hover {
     text-decoration: none;
 }
 
+#gpsStatus {
+    color: #00d100;
+}
+
+#gpsStatus.no {
+    color: #878787;
+}
+
+#gpsStatus.failed {
+    color: red;
+}
+
+#header li.gps-status>a:focus,
+#header li.gps-status>a:hover {
+    background-color: white;
+}
+
 span.logo {
     font-weight: 700;
     font-size: 40px;
