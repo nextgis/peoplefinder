@@ -66,10 +66,17 @@ def get_imsi_list(request):
         reverse = sorting_params[1] == 'DESC'
         result.sort(key=lambda x: x[sorting_field], reverse=reverse)
 
+    try:
+        gps_status = all(request.xmlrpc.get_current_gps())
+    except (socket.error, xmlrpclib.Error) as e:
+        gps_status = None
+
+
     return {
         'Result': 'OK',
         'Records': result,
-        'Messages': messages
+        'Messages': messages,
+        'GpsStatus': gps_status
     }
 
 
