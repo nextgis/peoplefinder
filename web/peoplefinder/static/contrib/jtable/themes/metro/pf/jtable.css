@@ -58,7 +58,7 @@ div.jtable-busy-panel-background.jtable-busy-panel-background-invisible {
 
 .jtable td:nth-child(1),
 .jtable th:nth-child(1) {
-    width: 50% !important;
+    width: 65% !important;
 }
 
 .jtable td:nth-child(2) {
@@ -67,7 +67,7 @@ div.jtable-busy-panel-background.jtable-busy-panel-background-invisible {
 
 .jtable td:nth-child(2),
 .jtable th:nth-child(2) {
-    width: 50% !important;
+    width: 35% !important;
 }
 
 .jtable thead {

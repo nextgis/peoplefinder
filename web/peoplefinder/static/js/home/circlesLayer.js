@@ -71,7 +71,9 @@
 
             this.bringToFrontLastCircles();
 
-            pf.viewmodel.map.fitBounds(this._circlesGroupLayer.getBounds());
+            var map = pf.viewmodel.map;
+            map.fitBounds(this._circlesGroupLayer.getBounds());
+            map.fitBounds(this._circlesGroupLayer.getBounds());
         },
 
         pushLastCircle: function (geoCircle) {

@@ -18,7 +18,7 @@
             if (verifiedValue) {
                 this._unreadSms = verifiedValue;
             } else {
-                this.initStorage();
+                this.dumpStorage();
             }
         },
 
@@ -28,6 +28,7 @@
                 if (context._unreadSms.hasOwnProperty(imsi)) {
                     context._unreadSms[imsi]._u = 0;
                     pf.modules.imsiTable.updateUnreadSmsCount(imsi, context._unreadSms[imsi]._u);
+                    context.dumpStorage();
                 }
             });
         },
@@ -48,7 +49,7 @@
             return valueVerified ? jsonStorage : false;
         },
 
-        initStorage: function () {
+        dumpStorage: function () {
             this._storage.set(this._key, JSON.stringify(this._unreadSms), {expires: 365});
         },
 
@@ -64,7 +65,7 @@
             if (smsChanged) {
                 this.handleSmsCountChanged(messagesFromServer);
                 this._currentSmsState = stringifyMessagesFromServer;
-                this.initStorage();
+                this.dumpStorage();
             }
         },
 
