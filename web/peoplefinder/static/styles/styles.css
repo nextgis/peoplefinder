@@ -12,8 +12,10 @@ div.navbar-header a:hover {
     text-decoration: none;
 }
 
-#header div.container-fluid {
-    padding: 0;
+@media (min-width: 768px) {
+    #header div.container-fluid {
+        padding: 0;
+    }
 }
 
 #gpsStatus {
@@ -28,8 +30,8 @@ div.navbar-header a:hover {
     color: red;
 }
 
-#header li.gps-status>a:focus,
-#header li.gps-status>a:hover {
+#header li.gps-status > a:focus,
+#header li.gps-status > a:hover {
     background-color: white;
 }
 
@@ -58,9 +60,9 @@ span.logo {
 }
 
 #trackingButton.stop:hover {
-  color: #fff;
-  background-color: #902828;
-  border-color: #742020;
+    color: #fff;
+    background-color: #902828;
+    border-color: #742020;
 }
 
 #trackingButton.stop.wait,
