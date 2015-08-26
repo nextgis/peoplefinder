@@ -112,11 +112,15 @@ class CommsInterfaceServer(object):
         self.xmlrpc_server.register_function(self.stop_tracking)
         self.xmlrpc_server.register_function(self.measure_model.get_current_gps)
         self.xmlrpc_server.register_function(lambda: self.editable_parameters["wellcome_message"], "get_wellcome_message")
-        self.xmlrpc_server.register_function(lambda msg: self.editable_parameters.update({"wellcome_message": msg}), "set_wellcome_message")
+        self.xmlrpc_server.register_function(self.xmlrpc_set_welcome_message, "set_wellcome_message")
 
         self.xmlrpc_thread = threading.Thread(target=self.xmlrpc_server.serve_forever)
         self.xmlrpc_thread.daemon = True
         self.xmlrpc_thread.start()
+
+    def xmlrpc_set_welcome_message(self, msg):
+        self.editable_parameters.update({"wellcome_message": msg})
+        return True
 
     def try_run_vty_client(self):
         self.logger.info("Try to create connection to VTY!")
