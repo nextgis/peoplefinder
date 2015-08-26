@@ -102,7 +102,8 @@ def get_imsi_messages(request):
         sms = {
             'id': obj.id,
             'text': obj.text,
-            'type': direction
+            'type': direction,
+            'ts': time.mktime(obj.created.timetuple())
         }
 
         if direction == 'to':

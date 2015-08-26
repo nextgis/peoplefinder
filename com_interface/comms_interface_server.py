@@ -87,6 +87,9 @@ class CommsInterfaceServer(object):
         self.proc_unknow_adress_sms_thread.start()
 
         while not self.time_to_shutdown_event.is_set():
+            if self.try_run_vty_client is None:
+                self.try_run_vty_client()
+
             time.sleep(0.1)
 
     def try_run_xmlrpc_server(self):
@@ -341,11 +344,11 @@ class CommsInterfaceServer(object):
             return False
 
         cmd = 'subscriber imsi {0}  silent-sms sender extension {1} send "silent hello"\n'.format(imsi, self.editable_parameters["pf_phone_number"])
-
+        self.logger.debug("VTY command: {0}".format(cmd))
         try:
             self.vty_client_connection.write(cmd)
-            self.vty_client_connection.read_until("OpenBSC>", self.vty_readtimeout_secs)
-
+            res = self.vty_client_connection.read_until("OpenBSC>", self.vty_readtimeout_secs)
+            self.logger.debug("VTY answer: {0}".format(res))
             return True
         except:
             self.logger.error("Cann't read answer from VTY")
@@ -359,10 +362,11 @@ class CommsInterfaceServer(object):
             return False
 
         cmd = 'subscriber imsi {0} sms sender extension {1} send {2}\n'.format(imsi, self.editable_parameters["pf_phone_number"], text)
+        self.logger.debug("VTY command: {0}".format(cmd))
         try:
             self.vty_client_connection.write(cmd)
-            self.vty_client_connection.read_until("OpenBSC>", self.vty_readtimeout_secs)
-
+            res = self.vty_client_connection.read_until("OpenBSC>", self.vty_readtimeout_secs)
+            self.logger.debug("VTY answer: {0}".format(res))
             return True
         except:
             self.logger.error("Cann't read answer from VTY")
@@ -376,10 +380,11 @@ class CommsInterfaceServer(object):
             return False
 
         cmd = 'subscriber extension {0} sms sender extension {1} send {2}\n'.format(extension, self.editable_parameters["pf_phone_number"], text)
+        self.logger.debug("VTY command: {0}".format(cmd))
         try:
             self.vty_client_connection.write(cmd)
-            self.vty_client_connection.read_until("OpenBSC>", self.vty_readtimeout_secs)
-
+            res = self.vty_client_connection.read_until("OpenBSC>", self.vty_readtimeout_secs)
+            self.logger.debug("VTY answer: {0}".format(res))
             return True
         except:
             self.logger.error("Cann't read answer from VTY")
