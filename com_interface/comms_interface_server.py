@@ -164,7 +164,7 @@ class CommsInterfaceServer(object):
     #     self.editable_parameters_save()
     #     return True
 
-    def xmlrpc_get_parameters(self, parameters):
+    def xmlrpc_get_parameters(self):
         parameters = {}
         parameters["wellcome_message"] = self.pf_wellcome_message
         parameters["reply_message"] = self.pf_reply_message
