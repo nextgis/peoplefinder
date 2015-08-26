@@ -160,10 +160,17 @@ class CommsInterfaceServer(object):
 
     def xmlrpc_set_welcome_message(self, msg):
         self.pf_wellcome_message = msg
+        self.editable_parameters_save()
         return True
 
     def xmlrpc_set_parameters(self, parameters):
         self.logger.info("Parameters to save: {0}".format(parameters) )
+        if "wellcome_message" in parameters:
+            self.pf_wellcome_message = parameters["wellcome_message"]
+        
+        if "reply_message" in parameters:
+            self.pf_wellcome_message = parameters["reply_message"]
+
         self.editable_parameters_save()
         return True
 
