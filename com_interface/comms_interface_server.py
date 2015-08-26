@@ -150,18 +150,26 @@ class CommsInterfaceServer(object):
         self.xmlrpc_server.register_function(self.start_tracking)
         self.xmlrpc_server.register_function(self.stop_tracking)
         self.xmlrpc_server.register_function(self.measure_model.get_current_gps)
-        self.xmlrpc_server.register_function(lambda: self.pf_wellcome_message, "get_wellcome_message")
-        self.xmlrpc_server.register_function(self.xmlrpc_set_welcome_message, "set_wellcome_message")
+        #self.xmlrpc_server.register_function(lambda: self.pf_wellcome_message, "get_wellcome_message")
+        #self.xmlrpc_server.register_function(self.xmlrpc_set_welcome_message, "set_wellcome_message")
+        self.xmlrpc_server.register_function(self.xmlrpc_get_parameters, "get_parameters")
         self.xmlrpc_server.register_function(self.xmlrpc_set_parameters, "set_parameters")
 
         self.xmlrpc_thread = threading.Thread(target=self.xmlrpc_server.serve_forever)
         self.xmlrpc_thread.daemon = True
         self.xmlrpc_thread.start()
 
-    def xmlrpc_set_welcome_message(self, msg):
-        self.pf_wellcome_message = msg
-        self.editable_parameters_save()
-        return True
+    # def xmlrpc_set_welcome_message(self, msg):
+    #     self.pf_wellcome_message = msg
+    #     self.editable_parameters_save()
+    #     return True
+
+    def xmlrpc_get_parameters(self, parameters):
+        parameters = {}
+        parameters["wellcome_message"] = self.pf_wellcome_message
+        parameters["reply_message"] = self.pf_reply_message
+
+        return parameters
 
     def xmlrpc_set_parameters(self, parameters):
         self.logger.info("Parameters to save: {0}".format(parameters) )
@@ -169,7 +177,7 @@ class CommsInterfaceServer(object):
             self.pf_wellcome_message = parameters["wellcome_message"]
         
         if "reply_message" in parameters:
-            self.pf_wellcome_message = parameters["reply_message"]
+            self.pf_reply_message = parameters["reply_message"]
 
         self.editable_parameters_save()
         return True
