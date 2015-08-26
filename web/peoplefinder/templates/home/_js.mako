@@ -1,0 +1,14 @@
+<script src="${request.static_url('peoplefinder:static/js/home/init.js')}"></script>
+<script src="${request.static_url('peoplefinder:static/js/home/subscriber.js')}"></script>
+<script src="${request.static_url('peoplefinder:static/js/home/map.js')}"></script>
+<script src="${request.static_url('peoplefinder:static/js/home/circlesLayer.js')}"></script>
+<script src="${request.static_url('peoplefinder:static/js/home/imsiTable.js')}"></script>
+<script src="${request.static_url('peoplefinder:static/js/home/imsiTracking.js')}"></script>
+<script src="${request.static_url('peoplefinder:static/js/home/smsViewer.js')}"></script>
+<script src="${request.static_url('peoplefinder:static/js/home/smsSender.js')}"></script>
+<script src="${request.static_url('peoplefinder:static/js/home/storages/localStorage.js')}"></script>
+<script src="${request.static_url('peoplefinder:static/js/home/storages/unreadSmsStorage.js')}"></script>
+<script src="${request.static_url('peoplefinder:static/js/home/observers/imsiListObserver.js')}"></script>
+<script src="${request.static_url('peoplefinder:static/js/home/observers/selectedImsiObserver.js')}"></script>
+<script src="${request.static_url('peoplefinder:static/js/home/observers/smsListObserver.js')}"></script>
+<script src="${request.static_url('peoplefinder:static/js/home/observers/circlesObserver.js')}"></script>

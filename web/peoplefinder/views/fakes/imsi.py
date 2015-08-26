@@ -34,7 +34,10 @@ def get_imsi_list(request):
         'Result': 'OK',
         'Records': result,
         'Messages': [
-            {40000000000000: random.randrange(2, 5)}
+            {
+                'imsi': 40000000000000,
+                'count': random.randrange(2, 5)
+            }
         ]
     }
 
@@ -71,7 +74,7 @@ def get_imsi_messages(request):
         if sms['type'] == 'to':
             sms['sent'] = random.choice([True, False])
         result['sms'].append(sms)
-        
+
         c += 1
 
     result['sms'] = sorted(result['sms'], key=lambda sms: sms['text'])
@@ -120,6 +123,9 @@ def send_imsi_message(request):
     result = {
         'status': sent
     }
+
+    import time
+    time.sleep(8)
 
     return result
 

@@ -45,7 +45,7 @@
                         }
                     },
                     last_lur: {
-                        title: 'Last LUR (minutes ago)',
+                        title: 'Last activity',
                         display: function (data) {
                             return '<span id="imsi-lur-' + data.record.imsi + '">' + data.record.last_lur + '</span>';
                         }
@@ -86,8 +86,13 @@
             });
         },
 
-        _updateUnreadMessages: function (messages) {
+        updateUnreadSmsCount: function (imsi, unreadSmsCount) {
+            var unreadSmsText = unreadSmsCount > 0 ? '+ ' + unreadSmsCount + ' sms' : '';
+            $('#imsi-sms-' + imsi).text(unreadSmsText);
+        },
 
+        _updateUnreadMessages: function (messages) {
+            pf.modules.unreadSmsStorage.updateUnreadMessages(messages);
         }
     });
 }(jQuery, pf));

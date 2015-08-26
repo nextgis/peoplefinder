@@ -22,6 +22,7 @@ from model.hlr import (
 @view_config(route_name='get_imsi_list', request_method='GET', renderer='json')
 def get_imsi_list(request):
     result = []
+    messages = []
 
     query = DBSession.query(
         Measure.id,
@@ -37,6 +38,28 @@ def get_imsi_list(request):
             'last_lur': dtime.total_seconds() // 60
         })
 
+
+    # Calculate message count for each IMSI
+    imsi_list = map(lambda item: item['imsi'], result);
+    query = HLRDBSession.query(
+        Subscriber.imsi,
+        func.count(Sms.id).label('sms_count')
+    ).filter((
+        (Sms.src_addr == Subscriber.extension) |
+        (Sms.dest_addr == Subscriber.extension)) &
+        (Sms.protocol_id != 64) &
+        (Subscriber.imsi.in_(imsi_list))
+    ).group_by(
+        Subscriber.imsi
+    ).all()
+
+    for record in query:
+        messages.append({
+            'imsi': int(record.imsi),
+            'count': record.sms_count
+        })
+
+
     if 'jtSorting' in request.GET:
         sorting_params = request.GET['jtSorting'].split(' ')
         sorting_field = sorting_params[0]
@@ -45,15 +68,14 @@ def get_imsi_list(request):
 
     return {
         'Result': 'OK',
-        'Records': result
+        'Records': result,
+        'Messages': messages
     }
 
 
 @view_config(route_name='get_imsi_messages', request_method='GET', renderer='json')
 def get_imsi_messages(request):
     imsi = int(request.matchdict['imsi'])
-    ts_begin = request.GET.get('timestamp_begin')
-    ts_end = request.GET.get('timestamp_end')
 
     pfnum = request.xmlrpc.get_peoplefinder_number()
     query = HLRDBSession.query(
@@ -76,27 +98,16 @@ def get_imsi_messages(request):
     }
 
     for obj in query.all():
-        sms = {'id': obj.id}
         direction = 'from' if obj.dest_addr == pfnum else 'to'
+        sms = {
+            'id': obj.id,
+            'text': obj.text,
+            'type': direction,
+            'ts': time.mktime(obj.created.timetuple())
+        }
 
         if direction == 'to':
             sms['sent'] = True if obj.sent else False
-
-        if ts_begin is not None:
-            tsb = datetime.fromtimestamp(float(ts_begin) / 1000)
-        if ts_end is not None:
-            tse = datetime.fromtimestamp(float(ts_end) / 1000)
-
-        if ts_begin is not None and ts_end is not None:
-            if obj.created >= tsb and obj.created <= tse:
-                sms['text'] = obj.text
-                sms['type'] = direction
-        elif ts_begin is None and ts_end is not None:
-            if obj.created <= tse:
-                sms['text'] = obj.text
-                sms['type'] = direction
-        elif ts_begin is None and ts_ens is None:
-            pass
 
         result['sms'].append(sms)
 
