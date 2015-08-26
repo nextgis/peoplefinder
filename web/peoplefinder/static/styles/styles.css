@@ -106,6 +106,18 @@ span.logo {
     display: none;
 }
 
+#smsViewer div.sms {
+    margin-bottom: 5px;
+    font-size: 12px;
+}
+
+#smsViewer div.sms span {
+    font-size: 14px;
+    display: inline-block;
+    margin-left: 10px;
+    line-height: 1em;
+}
+
 #smsViewer div.sms.to {
     color: #4c7300;
 }
