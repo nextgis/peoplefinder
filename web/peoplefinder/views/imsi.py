@@ -68,8 +68,9 @@ def get_imsi_list(request):
 
     try:
         gps_status = all(request.xmlrpc.get_current_gps())
+        gps_status = 'yes' if gps_status else 'no'
     except (socket.error, xmlrpclib.Error) as e:
-        gps_status = None
+        gps_status = 'failed'
 
 
     return {
