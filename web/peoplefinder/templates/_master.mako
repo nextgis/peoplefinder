@@ -26,8 +26,8 @@
                 <div class="navbar-collapse collapse" id="navbar-collapse-1" style="margin-top:20px;">
                     <ul class="nav navbar-nav navbar-right">
                         <%block name="gps_status"/>
-                        <li><a href="${request.route_url('home')}"><i class="fa fa-location-arrow"></i></a></li>
-                        <li><a href="${request.route_url('configuration')}"><i class="fa fa-cog"></i></a></li>
+                        <li><a title="Locate me" href="${request.route_url('home')}"><i class="fa fa-location-arrow"></i></a></li>
+                        <li><a title="Configuration" href="${request.route_url('configuration')}"><i class="fa fa-cog"></i></a></li>
                     </ul>
                 </div>
             </div>
