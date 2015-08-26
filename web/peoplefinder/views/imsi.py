@@ -103,7 +103,7 @@ def get_imsi_messages(request):
             'id': obj.id,
             'text': obj.text,
             'type': direction,
-            'ts': time.mktime(obj.created.timetuple())
+            'ts': time.strftime('%d %b %Y, %H:%M:%S', obj.created.timetuple())
         }
 
         if direction == 'to':
