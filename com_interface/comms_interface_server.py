@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import time
 import Queue
 import socket
@@ -57,14 +58,14 @@ class CommsInterfaceServer(object):
         self.proc_measure_thread = None
         self.proc_unknow_adress_sms_thread = None
 
-        self.editable_parameters = {
-            "pf_phone_number": "10001",
-            "wellcome_message": "You are connected to a mobile search and rescue team. " +
-                                "Please SMS to {ph_phone_number} to communicate. " +
-                                "Your temporary phone number is {ms_phone_number}",
-            "reply_message": "Your SMSs are being sent to a mobile search and rescue team." +
-                             "Reply to this message to communicate."
-        }
+        self.pf_phone_number = "10001"
+        self.pf_wellcome_message =  "You are connected to a mobile search and rescue team. " + \
+                                    "Please SMS to {ph_phone_number} to communicate. " + \
+                                    "Your temporary phone number is {ms_phone_number}"
+        self.pf_reply_message = "Your SMSs are being sent to a mobile search and rescue team." + \
+                                "Reply to this message to communicate."
+        self.pf_editable_parameters_save_path = "/var/lib/peoplefinder/pf_editable_parameters"
+        self.editable_parameters_load()
 
         self.measure_update_period = 3
 
@@ -73,6 +74,44 @@ class CommsInterfaceServer(object):
 
         bind_hlr_session(self.hlr_db_conn_str)
         self.hlr_session = HLRDBSession
+
+        self.vty_use_send_sms_rlock = threading.RLock()
+
+    def editable_parameters_load(self):
+        if os.path.exists(self.pf_editable_parameters_save_path):
+            self.logger.info("File with stored editable parameters found! Try read...!")
+            config = ConfigParser.ConfigParser()
+
+            try:
+                config.read(self.pf_editable_parameters_save_path)
+
+                self.pf_wellcome_message = config.get('editable_parameters', 'wellcome_message')
+                self.pf_reply_message = config.get('editable_parameters', 'reply_message')
+
+            except ConfigParser.Error as err:
+                self.logger.error("Read file with stored editable parameters FAILD! Error: ".format(err.message))
+
+            self.logger.info("Read file with stored editable parameters SUCCESS!")
+        else:
+            self.logger.info("File with stored editable parameters not found! Use default!")
+
+        self.logger.info(
+            "Editable parameters:" +
+            ""
+        )
+
+    def editable_parameters_save(self):
+        dir_name = os.path.dirname(self.pf_editable_parameters_save_path)
+        if not os.path.exists(dir_name):
+            os.makedirs(dir_name)
+
+        config = ConfigParser.ConfigParser()
+        config.add_section('editable_parameters')
+        config.set('editable_parameters', 'wellcome_message', self.pf_wellcome_message)
+        config.get('editable_parameters', 'reply_message', self.pf_reply_message)
+
+        with open(self.pf_editable_parameters_save_path, 'wb') as configfile:
+            config.write(configfile)
 
     def serve_forever(self):
         self.try_run_xmlrpc_server()
@@ -113,6 +152,7 @@ class CommsInterfaceServer(object):
         self.xmlrpc_server.register_function(self.measure_model.get_current_gps)
         self.xmlrpc_server.register_function(lambda: self.editable_parameters["wellcome_message"], "get_wellcome_message")
         self.xmlrpc_server.register_function(self.xmlrpc_set_welcome_message, "set_wellcome_message")
+        self.xmlrpc_server.register_function(self.xmlrpc_set_parameters, "set_parameters")
 
         self.xmlrpc_thread = threading.Thread(target=self.xmlrpc_server.serve_forever)
         self.xmlrpc_thread.daemon = True
@@ -120,6 +160,11 @@ class CommsInterfaceServer(object):
 
     def xmlrpc_set_welcome_message(self, msg):
         self.editable_parameters.update({"wellcome_message": msg})
+        return True
+
+    def xmlrpc_set_parameters(self, parameters):
+        self.logger.info("Parameters to save: {0}".format(parameters) )
+        self.editable_parameters_save()
         return True
 
     def try_run_vty_client(self):
@@ -360,22 +405,23 @@ class CommsInterfaceServer(object):
             return False
 
     def vty_send_sms(self, imsi, text):
-        self.logger.debug("XMLRPC command: send sms to imsi: {0}".format(imsi))
-        if self.vty_client_connection is None:
-            self.logger.error("Connection to VTY is not established")
-            return False
+        with self.vty_use_send_sms_rlock:
+            self.logger.debug("XMLRPC command: send sms to imsi: {0}".format(imsi))
+            if self.vty_client_connection is None:
+                self.logger.error("Connection to VTY is not established")
+                return False
 
-        cmd = 'subscriber imsi {0} sms sender extension {1} send {2}\n'.format(imsi, self.editable_parameters["pf_phone_number"], text)
-        self.logger.debug("VTY command: {0}".format(cmd))
-        try:
-            self.vty_client_connection.write(cmd)
-            res = self.vty_client_connection.read_until("OpenBSC>", self.vty_readtimeout_secs)
-            self.logger.debug("VTY answer: {0}".format(res))
-            return True
-        except:
-            self.logger.error("Cann't read answer from VTY")
-            self.vty_client_connection = None
-            return False
+            cmd = 'subscriber imsi {0} sms sender extension {1} send {2}\n'.format(imsi, self.editable_parameters["pf_phone_number"], text)
+            self.logger.debug("VTY command: {0}".format(cmd))
+            try:
+                self.vty_client_connection.write(cmd)
+                res = self.vty_client_connection.read_until("OpenBSC>", self.vty_readtimeout_secs)
+                self.logger.debug("VTY answer: {0}".format(res))
+                return True
+            except:
+                self.logger.error("Cann't read answer from VTY")
+                self.vty_client_connection = None
+                return False
 
     def vty_send_sms_by_phone_number(self, extension, text):
         self.logger.debug("XMLRPC command: send sms to extension: {0}".format(extension))
