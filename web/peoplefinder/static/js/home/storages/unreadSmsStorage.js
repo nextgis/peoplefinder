@@ -84,7 +84,7 @@
                 messageServerCount = serverMessageItem.count;
                 if (context._unreadSms.hasOwnProperty(imsi)) {
                     unreadSmsItem = context._unreadSms[imsi];
-                    if (imsi === pf.viewmodel.selectedImsi) {
+                    if (imsi == pf.viewmodel.selectedImsi) {
                         unreadSmsItem._a = messageServerCount;
                     }
                     allCount = unreadSmsItem._a;
@@ -92,15 +92,15 @@
                     unreadSmsItem._a = messageServerCount;
                     imsiFromServer[imsi] = true;
                     if (allCount == messageServerCount) {
-                        return false;
+                        return true;
                     } else if (messageServerCount > allCount) {
                         unreadSmsItem._u = messageServerCount - allCount + unreadCount;
                         unreadSmsChangedImsi.push(imsi);
-                        return false;
+                        return true;
                     } else if (messageServerCount < allCount) {
                         unreadSmsItem._u = 0;
                         unreadSmsChangedImsi.push(imsi);
-                        return false;
+                        return true;
                     }
                 } else {
                     context._unreadSms[imsi] = {
