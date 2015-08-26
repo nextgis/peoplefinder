@@ -28,7 +28,7 @@
                 if (context._unreadSms.hasOwnProperty(imsi)) {
                     context._unreadSms[imsi]._u = 0;
                     pf.modules.imsiTable.updateUnreadSmsCount(imsi, context._unreadSms[imsi]._u);
-                    this.dumpStorage();
+                    context.dumpStorage();
                 }
             });
         },
