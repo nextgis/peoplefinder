@@ -12,6 +12,10 @@ div.navbar-header a:hover {
     text-decoration: none;
 }
 
+#header div.container-fluid {
+    padding: 0;
+}
+
 #gpsStatus {
     color: #00d100;
 }
