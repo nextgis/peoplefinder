@@ -88,7 +88,7 @@
         },
 
         updateUnreadSmsCount: function (imsi, unreadSmsCount) {
-            var unreadSmsText = unreadSmsCount > 0 ? '+ ' + unreadSmsCount + ' sms' : '';
+            var unreadSmsText = unreadSmsCount > 0 ? '+ ' + unreadSmsCount : '';
             $('#imsi-sms-' + imsi).text(unreadSmsText);
         },
 
