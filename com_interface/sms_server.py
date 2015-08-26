@@ -21,7 +21,10 @@ class PostHandler(BaseHTTPRequestHandler):
             postvars = {}
 
         self.server.logger.info("Get info about unrichable sms: {0}".format(postvars))
-        self.server.comms_model.put_unknown_adresses_sms(postvars)
+        if 'source' in postvars:
+            self.server.comms_model.put_unknown_adresses_sms(postvars)
+        else:
+            self.server.logger.warning("Bad sms info!")
 
         self.send_response(200)
 
