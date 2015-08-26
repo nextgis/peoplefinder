@@ -19,6 +19,7 @@
                 dataType: 'json'
             }).done(function (result) {
                 pf.modules.imsiTable.updateTable(result);
+                pf.publish('observer/gps/status', [result.GpsStatus]);
                 setTimeout(function () {
                     context.updateIsmiList();
                 }, pf.settings.imsi_list_timeout);
