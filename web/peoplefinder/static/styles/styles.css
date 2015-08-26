@@ -126,10 +126,12 @@ span.logo {
 #smsViewer div.sms {
     margin-bottom: 5px;
     font-size: 12px;
+    font-weight: bold;
 }
 
 #smsViewer div.sms span {
     font-size: 14px;
+    font-weight: normal;
     display: inline-block;
     margin-left: 10px;
     line-height: 1em;
