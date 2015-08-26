@@ -17,7 +17,7 @@
         <nav class="navbar navbar-inner" role="navigation">
             <div class="container-fluid">
                 <div class="navbar-header">
-                    <a href="#">
+                    <a href="${request.route_url('home')}">
                         <span class="logo logo-gray">people</span>
                         <span class="logo logo-orange">finder</span>
                         <small></small>

@@ -33,6 +33,7 @@ def get_imsi_list(request):
     return {
         'Result': 'OK',
         'Records': result,
+        'GpsStatus': random.choice([True, False]),
         'Messages': [
             {
                 'imsi': 40000000000000,
@@ -69,7 +70,8 @@ def get_imsi_messages(request):
         sms = {
             'id': c,
             'type': random.choice(types),
-            'text': time.time() * 1000000
+            'text': 'asdfds sdfdsfds dfsdfdsfds sdfdsffdsf sdfasd asdfsdfas adsfdsf wefwdf sdfdsfdsf',
+            'ts': '29 Aug 2015, 15:23:12'
         }
         if sms['type'] == 'to':
             sms['sent'] = random.choice([True, False])

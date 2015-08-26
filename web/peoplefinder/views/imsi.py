@@ -66,10 +66,18 @@ def get_imsi_list(request):
         reverse = sorting_params[1] == 'DESC'
         result.sort(key=lambda x: x[sorting_field], reverse=reverse)
 
+    try:
+        gps_status = all(request.xmlrpc.get_current_gps())
+        gps_status = 'yes' if gps_status else 'no'
+    except (socket.error, xmlrpclib.Error) as e:
+        gps_status = 'failed'
+
+
     return {
         'Result': 'OK',
         'Records': result,
-        'Messages': messages
+        'Messages': messages,
+        'GpsStatus': gps_status
     }
 
 
@@ -103,7 +111,7 @@ def get_imsi_messages(request):
             'id': obj.id,
             'text': obj.text,
             'type': direction,
-            'ts': time.mktime(obj.created.timetuple())
+            'ts': time.strftime('%d %b %Y, %H:%M:%S', obj.created.timetuple())
         }
 
         if direction == 'to':
