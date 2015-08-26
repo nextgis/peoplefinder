@@ -19,4 +19,5 @@ function loadModules() {
     pf.modules.imsiTracking.init();
     pf.modules.circlesObserver.init();
     pf.modules.unreadSmsStorage.init();
+    pf.modules.gpsStatusObserver.init();
 }
