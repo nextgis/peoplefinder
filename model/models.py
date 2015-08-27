@@ -38,6 +38,15 @@ class Measure(Base):
     gps_lon = Column(Float)
 
 
+class Settings(Base):
+    __tablename__ = 'settings'
+
+    id = Column(Integer, primary_key=True)
+
+    name = Column(Text, nullable=False)
+    value = Column(Text)
+
+
 class SearchSession(Base):
     __tablename__ = 'searchsession'
     id = Column(Integer, primary_key=True)
