@@ -34,8 +34,8 @@ def configuration_get(request):
     try:
         result.update(request.xmlrpc.get_parameters())
     except (socket.error, xmlrpclib.Error) as e:
-        result['welcome'] = None
-        result['reply'] = None
+        result['wellcome_message'] = None
+        result['reply_message'] = None
 
     return result
 
