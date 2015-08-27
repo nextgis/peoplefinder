@@ -11,6 +11,7 @@ from pyramid.paster import (
 
 from model.models import (
     DBSession,
+    Settings,
     Base,
     )
 
@@ -31,3 +32,11 @@ def main(argv=sys.argv):
     engine = engine_from_config(settings, 'sqlalchemy.pf.')
     DBSession.configure(bind=engine)
     Base.metadata.create_all(engine)
+
+    # initial settings
+    with transaction.manager:
+        DBSession.add_all([
+            Settings(name='imsiUpdate', value=3000),
+            Settings(name='smsUpdate', value=3000),
+            Settings(name='silentSms', value=3000)
+        ])

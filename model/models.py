@@ -43,7 +43,7 @@ class Settings(Base):
 
     id = Column(Integer, primary_key=True)
 
-    name = Column(Text, nullable=False)
+    name = Column(Text, unique=True, nullable=False)
     value = Column(Text)
 
 
