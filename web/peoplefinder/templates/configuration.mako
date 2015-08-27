@@ -31,6 +31,10 @@
                         <input type="text" class="form-control" id="welcome">
                     </div>
                     <div class="form-group">
+                        <label for="reply">Reply message</label>
+                        <input type="text" class="form-control" id="reply">
+                    </div>
+                    <div class="form-group">
                         <label for="imsiUpdate">IMSI update interval</label>
                         <input type="number" class="form-control" id="imsiUpdate">
                     </div>
