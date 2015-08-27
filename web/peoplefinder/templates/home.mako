@@ -12,7 +12,7 @@
     <li class="gps-status"><a title="GPS is on" id="gpsStatus" href="${request.route_url('home')}"><i class="fa fa-globe fa-lg"></i></a></li>
 </%block>
 
-<div id="body">
+<div id="home">
     <div class="container">
         <div class="row margin-top-10 margin-bottom-10">
             <div class="col-md-8">
