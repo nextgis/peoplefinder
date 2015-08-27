@@ -138,7 +138,7 @@ def get_imsi_circles(request):
         (Measure.gps_lat != None) &
         (Measure.gps_lon != None) &
         (Measure.timestamp <= datetime.fromtimestamp(float(ts_end) / 1000))
-    )
+    ).order_by(Measure.timestamp.asc())
 
     if ts_begin is not None:
         query = query.filter(
@@ -149,6 +149,7 @@ def get_imsi_circles(request):
         'imsi': imsi,
         'circles': []
     }
+
 
     for circle in query.all():
         result['circles'].append({
