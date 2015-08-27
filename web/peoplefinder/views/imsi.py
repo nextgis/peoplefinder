@@ -98,7 +98,7 @@ def get_imsi_messages(request):
          ((Sms.dest_addr == Subscriber.extension) & (Sms.src_addr == pfnum))) &
         (Subscriber.imsi == imsi) &
         (Sms.protocol_id != 64)
-    )
+    ).order_by(Sms.created.asc())
 
     result = {
         'imsi': imsi,
@@ -149,7 +149,6 @@ def get_imsi_circles(request):
         'imsi': imsi,
         'circles': []
     }
-
 
     for circle in query.all():
         result['circles'].append({
