@@ -15,13 +15,13 @@ L.Control.TilesSelector = L.Control.extend({
         this._map = map;
         this._map._tilesLayer = null;
 
-        L.DomEvent.on(container, 'click', function () {
+        $(container).find('input').on('change', $.proxy(function () {
             if (this._map._tilesLayer) {
                 this._map._tilesLayer.remove();
             }
             this._isOnline = !this._isOnline;
             this._selectTileLayer(this._isOnline);
-        }, this);
+        }, this));
 
         return container;
     },
