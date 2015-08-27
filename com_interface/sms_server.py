@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import cgi
+import urlparse
 import SocketServer
 
 from BaseHTTPServer import BaseHTTPRequestHandler
@@ -12,22 +13,30 @@ class PostHandler(BaseHTTPRequestHandler):
         self.server.logger.info("do_POST!")
 
         ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
-        if ctype == 'multipart/form-data':
-            postvars = cgi.parse_multipart(self.rfile, pdict)
-        elif ctype == 'application/x-www-form-urlencoded':
-            length = int(self.headers.getheader('content-length'))
-            postvars = cgi.parse_qs(self.rfile.read(length), keep_blank_values=1)
-        else:
-            postvars = {}
 
-        self.server.logger.info("Get info about unrichable sms: {0}".format(postvars))
-        if 'source' in postvars:
-            self.server.comms_model.put_unknown_adresses_sms(postvars)
+        self.server.logger.info("ctype: {0}".format(ctype))
+        self.server.logger.info("pdict: {0}".format(pdict))
+
+        varLen = int(self.headers['Content-Length'])
+        postVars = self.rfile.read(varLen)
+        
+        self.server.logger.info("self.headers: {0}".format(self.headers))
+
+        self.send_response(200)
+        self.end_headers()
+
+    def do_GET(self):
+        o = urlparse.urlparse(self.path)
+        self.server.logger.info("o: {0}".format(o))
+        parameters = urlparse.parse_qs(o.query)
+        self.server.logger.info("parameters: {0}".format(parameters))
+        if 'source' in parameters:
+            self.server.comms_model.put_unknown_adresses_sms(parameters)
         else:
             self.server.logger.warning("Bad sms info!")
 
         self.send_response(200)
-
+        self.end_headers()
 
 class SMSServer(SocketServer.TCPServer):
     def __init__(self, configuration, comms_model):
