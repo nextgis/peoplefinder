@@ -1,5 +1,8 @@
 from pyramid.view import view_config
 
+count_sms = 0
+count_sms_2 = 3
+
 
 @view_config(route_name='get_imsi_list', renderer='json')
 def get_imsi_list(request):
@@ -20,6 +23,12 @@ def get_imsi_list(request):
 
     result.append({
         'id': 25,
+        'imsi': 40000000000001,
+        'last_lur': 3
+    })
+
+    result.append({
+        'id': 25,
         'imsi': 40000000000000,
         'last_lur': 3
     })
@@ -30,6 +39,11 @@ def get_imsi_list(request):
         reverse = sorting_params[1] == 'DESC'
         result.sort(key=lambda x: x[sorting_field], reverse=reverse)
 
+    global count_sms
+    global count_sms_2
+    count_sms += 1
+    count_sms_2 += 1
+
     return {
         'Result': 'OK',
         'Records': result,
@@ -37,7 +51,11 @@ def get_imsi_list(request):
         'Messages': [
             {
                 'imsi': 40000000000000,
-                'count': random.randrange(2, 5)
+                'count': count_sms
+            },
+            {
+                'imsi': 40000000000001,
+                'count': count_sms_2
             }
         ]
     }

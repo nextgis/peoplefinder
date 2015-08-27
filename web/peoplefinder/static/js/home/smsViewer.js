@@ -29,7 +29,7 @@
                 }
 
                 $smsItem = $('<div id="sms-' + smsItem.id + '" class="' + cssClasses.join(' ') + '">' +
-                    smsItem.type + ' ' + smsItem.ts + ':<br/><span>'  + smsItem.text + '</span></div>');
+                    (smsItem.type === 'to' ? 'To' : 'From') + ' (' + smsItem.ts + '):<br/><span>'  + smsItem.text + '</span></div>');
 
                 $smsItem.prependTo(pf.view.$smsViewer);
 

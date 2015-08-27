@@ -21,13 +21,13 @@
 
                 switch (gpsStatus) {
                     case 'yes':
-                        context.$gpsStatus.prop('class', '');
+                        context.$gpsStatus.prop('class', '').prop('title', 'GPS is on');
                         break;
                     case 'no':
-                        context.$gpsStatus.prop('class', 'no');
+                        context.$gpsStatus.prop('class', 'no').prop('title', 'GPS is off');
                         break;
                     case 'failed':
-                        context.$gpsStatus.prop('class', 'failed');
+                        context.$gpsStatus.prop('class', 'failed').prop('title', 'GPS is unreachable');
                         break;
                 }
 
