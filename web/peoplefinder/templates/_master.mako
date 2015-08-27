@@ -44,7 +44,7 @@
             </div>
             <div class="col-md-5">
                 <div class="pull-right">
-                    <a href="home">
+                    <a href="${request.route_url('home')}">
                         <span class="logo logo-gray">people</span>
                         <span class="logo logo-orange">finder</span>
                     </a>
