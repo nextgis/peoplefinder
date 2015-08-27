@@ -25,32 +25,30 @@
             <div class="col-md-12">
                 <h2 class="text-uppercase">Other settings</h2>
 
-                <form>
+                <form action="${request.route_url('configuration')}" method="POST">
                     <div class="form-group">
                         <label for="welcome">Welcome message</label>
-                        <input type="text" class="form-control" id="welcome">
+                        <input type="text" class="form-control" name="welcome" id="welcome" value="${welcome}" />
                     </div>
                     <div class="form-group">
                         <label for="reply">Reply message</label>
-                        <input type="text" class="form-control" id="reply">
+                        <input type="text" class="form-control" name="reply"  id="reply" value="${reply}" />
                     </div>
                     <div class="form-group">
                         <label for="imsiUpdate">IMSI update interval</label>
-                        <input type="number" class="form-control" id="imsiUpdate">
+                        <input type="number" class="form-control" name="imsiUpdate"  id="imsiUpdate" value="${imsiUpdate}" />
                     </div>
                     <div class="form-group">
                         <label for="smsUpdate">SMS update interval</label>
-                        <input type="number" class="form-control" id="smsUpdate">
+                        <input type="number" class="form-control" name="smsUpdate"  id="smsUpdate" value="${smsUpdate}" />
                     </div>
                     <div class="form-group">
                         <label for="silentSms">Silent SMS interval</label>
-                        <input type="number" class="form-control" id="silentSms">
+                        <input type="number" class="form-control" name="silentSms"  id="silentSms" value="${silentSms}" />
                     </div>
                     <button type="submit" class="btn btn-primary">Submit</button>
                 </form>
-
             </div>
-
         </div>
     </div>
 </div>
