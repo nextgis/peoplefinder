@@ -35,15 +35,15 @@
                         <input type="text" class="form-control" name="reply"  id="reply" value="${reply}" />
                     </div>
                     <div class="form-group">
-                        <label for="imsiUpdate">IMSI update interval</label>
+                        <label for="imsiUpdate">IMSI update interval (ms)</label>
                         <input type="number" class="form-control" name="imsiUpdate"  id="imsiUpdate" value="${imsiUpdate}" />
                     </div>
                     <div class="form-group">
-                        <label for="smsUpdate">SMS update interval</label>
+                        <label for="smsUpdate">SMS update interval (ms)</label>
                         <input type="number" class="form-control" name="smsUpdate"  id="smsUpdate" value="${smsUpdate}" />
                     </div>
                     <div class="form-group">
-                        <label for="silentSms">Silent SMS interval</label>
+                        <label for="silentSms">Silent SMS interval (ms)</label>
                         <input type="number" class="form-control" name="silentSms"  id="silentSms" value="${silentSms}" />
                     </div>
                     <button type="submit" class="btn btn-primary">Submit</button>
