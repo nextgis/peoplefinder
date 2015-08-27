@@ -13,3 +13,4 @@
 <script src="${request.static_url('peoplefinder:static/js/home/observers/smsListObserver.js')}"></script>
 <script src="${request.static_url('peoplefinder:static/js/home/observers/circlesObserver.js')}"></script>
 <script src="${request.static_url('peoplefinder:static/js/home/observers/gpsStatusObserver.js')}"></script>
+<script src="${request.static_url('peoplefinder:static/js/home/control/pf.Control.TilesSelector.js')}"></script>
