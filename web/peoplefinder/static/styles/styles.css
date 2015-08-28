@@ -20,6 +20,7 @@ div.navbar-header a:hover {
 
 #gpsStatus {
     color: #00d100;
+    cursor: default;
 }
 
 #gpsStatus.no {

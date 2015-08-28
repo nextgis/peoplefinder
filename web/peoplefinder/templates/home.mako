@@ -9,7 +9,7 @@
 </%block>
 
 <%block name="gps_status">
-    <li class="gps-status"><a title="GPS is on" id="gpsStatus" href="${request.route_url('home')}"><i class="fa fa-globe fa-lg"></i></a></li>
+    <li class="gps-status"><a title="GPS is on" id="gpsStatus" href="javascript:void(0)"><i class="fa fa-globe fa-lg"></i></a></li>
 </%block>
 
 <div id="home">
