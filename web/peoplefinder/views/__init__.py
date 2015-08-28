@@ -13,7 +13,7 @@ from model.models import (
 
 @view_config(route_name='home', renderer='home.mako')
 def home(request):
-    return {}
+    return configuration_get(request)
 
 
 @view_config(route_name='configuration', renderer='configuration.mako')
