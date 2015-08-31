@@ -18,7 +18,8 @@ import logging_utils
 from model.models import (
     bind_session,
     DBSession,
-    Measure
+    Measure,
+    Settings,
 )
 from model.hlr import (
     bind_session as bind_hlr_session,
@@ -59,14 +60,6 @@ class CommsInterfaceServer(object):
         self.proc_unknow_adress_sms_thread = None
 
         self.pf_phone_number = "10001"
-        self.pf_wellcome_message =  "You are connected to a mobile search and rescue team. " + \
-                                    "Please SMS to {ph_phone_number} to communicate. " + \
-                                    "Your temporary phone number is {ms_phone_number}"
-        self.pf_reply_message = "Your SMSs are being sent to a mobile search and rescue team." + \
-                                "Reply to this message to communicate."
-        self.pf_editable_parameters_save_path = "/var/lib/peoplefinder/pf_editable_parameters"
-        self.editable_parameters_load()
-
         self.measure_update_period = 3
 
         bind_session(self.pf_db_conn_str)
@@ -76,42 +69,6 @@ class CommsInterfaceServer(object):
         self.hlr_session = HLRDBSession
 
         self.vty_use_send_sms_rlock = threading.RLock()
-
-    def editable_parameters_load(self):
-        if os.path.exists(self.pf_editable_parameters_save_path):
-            self.logger.info("File with stored editable parameters found! Try read...!")
-            config = ConfigParser.ConfigParser()
-
-            try:
-                config.read(self.pf_editable_parameters_save_path)
-
-                self.pf_wellcome_message = config.get('editable_parameters', 'wellcome_message')
-                self.pf_reply_message = config.get('editable_parameters', 'reply_message')
-
-            except ConfigParser.Error as err:
-                self.logger.error("Read file with stored editable parameters FAILD! Error: ".format(err.message))
-
-            self.logger.info("Read file with stored editable parameters SUCCESS!")
-        else:
-            self.logger.info("File with stored editable parameters not found! Use default!")
-
-        self.logger.info(
-            "Editable parameters:" +
-            ""
-        )
-
-    def editable_parameters_save(self):
-        dir_name = os.path.dirname(self.pf_editable_parameters_save_path)
-        if not os.path.exists(dir_name):
-            os.makedirs(dir_name)
-
-        config = ConfigParser.ConfigParser()
-        config.add_section('editable_parameters')
-        config.set('editable_parameters', 'wellcome_message', self.pf_wellcome_message)
-        config.set('editable_parameters', 'reply_message', self.pf_reply_message)
-
-        with open(self.pf_editable_parameters_save_path, 'wb') as configfile:
-            config.write(configfile)
 
     def serve_forever(self):
         self.try_run_xmlrpc_server()
@@ -150,37 +107,10 @@ class CommsInterfaceServer(object):
         self.xmlrpc_server.register_function(self.start_tracking)
         self.xmlrpc_server.register_function(self.stop_tracking)
         self.xmlrpc_server.register_function(self.measure_model.get_current_gps)
-        #self.xmlrpc_server.register_function(lambda: self.pf_wellcome_message, "get_wellcome_message")
-        #self.xmlrpc_server.register_function(self.xmlrpc_set_welcome_message, "set_wellcome_message")
-        self.xmlrpc_server.register_function(self.xmlrpc_get_parameters, "get_parameters")
-        self.xmlrpc_server.register_function(self.xmlrpc_set_parameters, "set_parameters")
 
         self.xmlrpc_thread = threading.Thread(target=self.xmlrpc_server.serve_forever)
         self.xmlrpc_thread.daemon = True
         self.xmlrpc_thread.start()
-
-    # def xmlrpc_set_welcome_message(self, msg):
-    #     self.pf_wellcome_message = msg
-    #     self.editable_parameters_save()
-    #     return True
-
-    def xmlrpc_get_parameters(self):
-        parameters = {}
-        parameters["wellcome_message"] = self.pf_wellcome_message
-        parameters["reply_message"] = self.pf_reply_message
-
-        return parameters
-
-    def xmlrpc_set_parameters(self, parameters):
-        self.logger.info("Parameters to save: {0}".format(parameters) )
-        if "wellcome_message" in parameters:
-            self.pf_wellcome_message = parameters["wellcome_message"]
-        
-        if "reply_message" in parameters:
-            self.pf_reply_message = parameters["reply_message"]
-
-        self.editable_parameters_save()
-        return True
 
     def try_run_vty_client(self):
         self.logger.info("Try to create connection to VTY!")
@@ -242,15 +172,34 @@ class CommsInterfaceServer(object):
         else:
             self.logger.info("Detect new IMSI.")
             welcome_msg = self.get_formated_welcome_message(ms_phone_number=extension)
-            self.logger.debug("Send welcome message: {0}".format(welcome_msg))
-            if not self.vty_send_sms(imsi, welcome_msg):
-                self.logger.error("Welcome message not send.")
+
+            if welcome_msg is None:
+                self.logger.error("Send welcome message FAILD! There is no text message!")
+            else:
+                self.logger.debug("Send welcome message: {0}".format(welcome_msg))
+                if not self.vty_send_sms(imsi, welcome_msg):
+                    self.logger.error("Welcome message not send.")
 
         self.save_measure_to_db(meas, extension)
 
     def get_formated_welcome_message(self, **wargs):
         wargs["ph_phone_number"] = self.pf_phone_number
-        return self.pf_wellcome_message.format(**wargs)
+
+        welcome_message_res = self.pf_session.query(Settings.value).filter(Settings.name == "welcomeMessage").all()
+        if len(welcome_message_res) != 1:
+            self.logger.error("Settings table not have welcomeMessage value!")
+            return None
+
+        return welcome_message_res[0][0].format(**wargs)
+
+    def get_formated_reply_message(self, **wargs):
+        wargs["ph_phone_number"] = self.pf_phone_number
+        reply_message_res = self.pf_session.query(Settings.value).filter(Settings.name == "replyMessage").all()
+        if len(reply_message_res) != 1:
+            self.logger.error("Settings table not have replyMessage value!")
+            return None
+
+        return reply_message_res[0][0].format(**wargs)
 
     def get_last_measure(self, imsi):
         last_measures = self.pf_session.query(Measure).filter(Measure.imsi == imsi).order_by(Measure.id.desc()).limit(1).all()
@@ -286,25 +235,16 @@ class CommsInterfaceServer(object):
             sms_info = self.measure_model.get_unknown_adresses_sms()
             if sms_info is not None:
                 self.logger.info("Process sms {0}".format(sms_info))
-                reply_msg = self.pf_reply_message
-
-                self.logger.debug("Send reply message: {0}".format(reply_msg))
-
-                if not self.vty_send_sms_by_phone_number(sms_info['source'][0], reply_msg):
-                    self.logger.error("Reply message not send.")
+                reply_msg = self.get_formated_reply_message(ms_phone_number=sms_info['source'][0])
+                if reply_msg is None:
+                    self.logger.error("Send reply message FAILD! There is no text message!")
+                else:
+                    self.logger.debug("Send reply message: {0}".format(reply_msg))
+                    if not self.vty_send_sms_by_phone_number(sms_info['source'][0], reply_msg):
+                        self.logger.error("Reply message not send.")
             else:
                 time.sleep(0.1)
         self.logger.info("Process unknown adressing sms thread FINISH!")
-
-    def get_wellcome_message(self):
-        return self.measure_model.get_wellcome_message()
-
-    def set_wellcome_message(self, msg):
-        self.measure_model.set_wellcome_message(msg)
-        return True
-
-    def get_peoplefinder_number(self):
-        return self.pf_phone_number
 
     def start_tracking(self):
         self.__imis_reday_for_silent_sms_list = Queue.Queue()
@@ -366,13 +306,24 @@ class CommsInterfaceServer(object):
             for (imsi, dest_addr, sent, created) in sub_sms:
                 if dest_addr is not None:
                     self.logger.debug(" sub: {0}, sms: {1}!".format(imsi, dest_addr))
-                    if (sent is not None) or (self.__tracking_cicle_number == 0):
+                    #if (sent is not None) or (self.__tracking_cicle_number == 0):
+                    if (sent is not None):
                         self.__imis_reday_for_silent_sms_list.put(imsi)
                 else:
                     self.logger.debug(" No silent sms for sub: {0}!".format(imsi))
                     self.__imis_reday_for_silent_sms_list.put(imsi)
 
-            time.sleep(3)
+            silent_sms_interval = self.pf_session.query(Settings.value).filter(Settings.name == "silentSms").all()
+            self.logger.debug(" silent_sms_interval: {0}!".format(silent_sms_interval))
+            if len(silent_sms_interval) != 1:
+                self.logger.error("Settings table not have silentSms value!")
+                silent_sms_interval = 3
+            else:
+                silent_sms_interval = int(silent_sms_interval[0][0]) / 1000
+
+            self.logger.debug(" silent_sms_interval: {0}!".format(silent_sms_interval))
+
+            time.sleep(silent_sms_interval)
             self.__tracking_cicle_number += 1
 
     def vty_conf_meas_feed(self):
