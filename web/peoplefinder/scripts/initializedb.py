@@ -38,5 +38,16 @@ def main(argv=sys.argv):
         DBSession.add_all([
             Settings(name='imsiUpdate', value=3000),
             Settings(name='smsUpdate', value=3000),
-            Settings(name='silentSms', value=3000)
+            Settings(name='silentSms', value=3000),
+            Settings(
+                name='welcomeMessage',
+                value='You are connected to a mobile search and rescue team. ' + \
+                      'Please SMS to {ph_phone_number} to communicate. ' + \
+                      'Your temporary phone number is {ms_phone_number}'
+            ),
+            Settings(
+                name='replyMessage',
+                value='Your SMSs are being sent to a mobile search and rescue team. ' + \
+                      'Reply to this message to communicate.'
+            ),
         ])
