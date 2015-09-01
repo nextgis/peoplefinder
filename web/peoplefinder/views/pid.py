@@ -4,7 +4,6 @@ import os.path
 class PID(object):
     def __init__(self, path):
         self.path = path
-        open(self.path, 'a').close()
 
     def get_value(self):
         with open(self.path) as pid_file:
