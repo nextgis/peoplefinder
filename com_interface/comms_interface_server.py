@@ -20,6 +20,7 @@ from model.models import (
     DBSession,
     Measure,
     Settings,
+    SearchSession,
 )
 from model.hlr import (
     bind_session as bind_hlr_session,
@@ -63,12 +64,17 @@ class CommsInterfaceServer(object):
         self.measure_update_period = 3
 
         bind_session(self.pf_db_conn_str)
-        self.pf_session = DBSession
-
         bind_hlr_session(self.hlr_db_conn_str)
-        self.hlr_session = HLRDBSession
 
         self.vty_use_send_sms_rlock = threading.RLock()
+
+    def start_new_session(self):
+        with transaction.manager:
+            DBSession.query(Measure).delete()
+            HLRDBSession.query(Sms).delete()
+            HLRDBSession.query(Subscriber).filter(Subscriber.extension != self.pf_phone_number).delete()
+
+        return True
 
     def serve_forever(self):
         self.try_run_xmlrpc_server()
@@ -107,10 +113,77 @@ class CommsInterfaceServer(object):
         self.xmlrpc_server.register_function(self.start_tracking)
         self.xmlrpc_server.register_function(self.stop_tracking)
         self.xmlrpc_server.register_function(self.measure_model.get_current_gps)
+        self.xmlrpc_server.register_function(self.start_new_session)
+        self.xmlrpc_server.register_function(self.xmlrpc_get_parameters, "get_parameters")
+        self.xmlrpc_server.register_function(self.xmlrpc_set_parameters, "set_parameters")
 
         self.xmlrpc_thread = threading.Thread(target=self.xmlrpc_server.serve_forever)
         self.xmlrpc_thread.daemon = True
         self.xmlrpc_thread.start()
+
+    def xmlrpc_get_parameters(self):
+        parameters = {}
+        
+        welc_msg_model = self._get_welcome_msg_model()
+        if welc_msg_model is None:
+            parameters["wellcome_message"] = None
+        else:
+            parameters["wellcome_message"] = welc_msg_model.value
+
+        reply_message_model = self._get_reply_msg_model()
+        if reply_message_model is None:
+            parameters["reply_message"] = None
+        else:
+            parameters["reply_message"] = reply_message_model.value
+
+        return parameters
+
+    def xmlrpc_set_parameters(self, parameters):
+        self.logger.info("Parameters to save: {0}".format(parameters) )
+        if "wellcome_message" in parameters:
+            welc_msg_model = self._get_welcome_msg_model()
+            if welc_msg_model is None:
+                with transaction.manager:
+                    obj = Settings(
+                        name="welcomeMessage",
+                        value=parameters["wellcome_message"]
+                    )
+                    DBSession.add(obj)
+            else:
+                with transaction.manager:
+                    welc_msg_model.value = parameters["wellcome_message"]
+                    DBSession.add(welc_msg_model)
+        if "reply_message" in parameters:
+            reply_message_model = self._get_reply_msg_model()
+            if reply_message_model is None:
+                with transaction.manager:
+                    obj = Settings(
+                        name="replyMessage",
+                        value=parameters["reply_message"]
+                    )
+                    DBSession.add(obj)
+            else:
+                with transaction.manager:
+                    reply_message_model.value = parameters["reply_message"]
+                    DBSession.add(reply_message_model)
+
+        return True
+
+    def _get_welcome_msg_model(self):
+        welcome_message_res = DBSession.query(Settings).filter(Settings.name == "welcomeMessage").all()
+        if len(welcome_message_res) != 1:
+            self.logger.error("Settings table not have welcomeMessage value!")
+            return None
+        else:
+            return welcome_message_res[0]
+
+    def _get_reply_msg_model(self):
+        welcome_message_res = DBSession.query(Settings).filter(Settings.name == "replyMessage").all()
+        if len(welcome_message_res) != 1:
+            self.logger.error("Settings table not have replyMessage value!")
+            return None
+        else:
+            return welcome_message_res[0]
 
     def try_run_vty_client(self):
         self.logger.info("Try to create connection to VTY!")
@@ -148,7 +221,7 @@ class CommsInterfaceServer(object):
 
         imsi = meas['imsi']
 
-        extensions = self.hlr_session.query(Subscriber.extension).filter(Subscriber.imsi == imsi).all()
+        extensions = HLRDBSession.query(Subscriber.extension).filter(Subscriber.imsi == imsi).all()
         if len(extensions) != 1:
             self.logger.error("HLR struct ERROR imsi {0} not one".format(imsi))
             return
@@ -185,7 +258,7 @@ class CommsInterfaceServer(object):
     def get_formated_welcome_message(self, **wargs):
         wargs["ph_phone_number"] = self.pf_phone_number
 
-        welcome_message_res = self.pf_session.query(Settings.value).filter(Settings.name == "welcomeMessage").all()
+        welcome_message_res = DBSession.query(Settings.value).filter(Settings.name == "welcomeMessage").all()
         if len(welcome_message_res) != 1:
             self.logger.error("Settings table not have welcomeMessage value!")
             return None
@@ -194,7 +267,7 @@ class CommsInterfaceServer(object):
 
     def get_formated_reply_message(self, **wargs):
         wargs["ph_phone_number"] = self.pf_phone_number
-        reply_message_res = self.pf_session.query(Settings.value).filter(Settings.name == "replyMessage").all()
+        reply_message_res = DBSession.query(Settings.value).filter(Settings.name == "replyMessage").all()
         if len(reply_message_res) != 1:
             self.logger.error("Settings table not have replyMessage value!")
             return None
@@ -202,7 +275,14 @@ class CommsInterfaceServer(object):
         return reply_message_res[0][0].format(**wargs)
 
     def get_last_measure(self, imsi):
-        last_measures = self.pf_session.query(Measure).filter(Measure.imsi == imsi).order_by(Measure.id.desc()).limit(1).all()
+        last_measures = DBSession.query(
+            Measure
+        ).filter(
+            Measure.imsi == imsi
+        ).order_by(
+            Measure.id.desc()
+        ).limit(1).all()
+
         if len(last_measures) == 0:
             return None
         return last_measures[0]
@@ -224,7 +304,7 @@ class CommsInterfaceServer(object):
                           gps_lon=meas['lon'],
                           )
             self.logger.info("Add measure: imsi={0}, ta={1}, lat={2}, lon={3}".format(meas['imsi'], meas['meas_rep']['L1_TA'], meas['lat'], meas['lon']))
-            self.pf_session.add(obj)
+            DBSession.add(obj)
 
     def __calculate_distance(self, ta):
         return ta * 553 + 533
@@ -313,7 +393,7 @@ class CommsInterfaceServer(object):
                     self.logger.debug(" No silent sms for sub: {0}!".format(imsi))
                     self.__imis_reday_for_silent_sms_list.put(imsi)
 
-            silent_sms_interval = self.pf_session.query(Settings.value).filter(Settings.name == "silentSms").all()
+            silent_sms_interval = DBSession.query(Settings.value).filter(Settings.name == "silentSms").all()
             self.logger.debug(" silent_sms_interval: {0}!".format(silent_sms_interval))
             if len(silent_sms_interval) != 1:
                 self.logger.error("Settings table not have silentSms value!")

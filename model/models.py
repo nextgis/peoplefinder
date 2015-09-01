@@ -45,10 +45,3 @@ class Settings(Base):
 
     name = Column(Text, unique=True, nullable=False)
     value = Column(Text)
-
-
-class SearchSession(Base):
-    __tablename__ = 'searchsession'
-    id = Column(Integer, primary_key=True)
-    start = Column(DateTime, nullable=False)
-    finish = Column(DateTime)

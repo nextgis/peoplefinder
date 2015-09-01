@@ -5,6 +5,7 @@ USER_NAME=cloud
 echo Add new user '$USER_NAME', please enter password below...
 sudo adduser $USER_NAME
 sudo usermod -a -G sudo,adm cloud
+su -l $USER_NAME
 
 # default values
 HOME=/home/$USER_NAME

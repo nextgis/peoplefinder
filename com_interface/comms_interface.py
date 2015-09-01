@@ -103,8 +103,12 @@ CommsModelManager.register('CommsModel', CommsModel)
 
 
 def start_comms_interface_server_process(configuration, comms_model):
-    srv = CommsInterfaceServer(configuration, comms_model, multiprocessing.Event())
-    srv.serve_forever()
+    try:
+        srv = CommsInterfaceServer(configuration, comms_model, multiprocessing.Event())
+        srv.serve_forever()
+    except ValueError as err:
+        logger.error("Cann't init comms interface server: {0}".format(err.message))
+        sys.exit(1)
 
 
 def start_sms_server(configuration, comms_model):
@@ -206,27 +210,23 @@ if __name__ == "__main__":
     #     logger.info("PF subscriber with phone number {0} already created.".format(pf_phone_number))
 
     # Init processes =========================================================
+    logger.info("Init comms interface server")
+    comms_interface_server_process = multiprocessing.Process(target=start_comms_interface_server_process, args=(configuration, comms_model, ))
+
     logger.info("Init gpsd listener")
     gpsd_listener = GPSDListenerProcess(comms_model)
 
-    logger.info("Init comms interface server")
-    try:
-        comms_interface_server_process = multiprocessing.Process(target=start_comms_interface_server_process, args=(configuration, comms_model, ))
-    except ValueError as err:
-        logger.error("Cann't init comms interface server: {0}".format(err.message))
-        sys.exit(1)
-
     logger.info("Init sms server")
-    try:
-        sms_server_process = multiprocessing.Process(target=start_sms_server, args=(configuration, comms_model, ))
-    except ValueError as err:
-        logger.error("Cann't init sms server: {0}".format(err.message))
-        sys.exit(1)
+    sms_server_process = multiprocessing.Process(target=start_sms_server, args=(configuration, comms_model, ))
 
     logger.info("Init meas_json listener")
     meas_json_listener = MeasJsonListenerProcess(comms_model, args.test_mode)
 
     # Start processes ========================================================
+    comms_interface_server_process.start()
+    logger.info("Comms interface server STARTED with pid: {0}".format(
+        comms_interface_server_process.pid))
+
     gpsd_listener.start()
     logger.info("GPSD listener STARTED with pid: {0}".format(
         gpsd_listener.pid))
@@ -234,10 +234,6 @@ if __name__ == "__main__":
     sms_server_process.start()
     logger.info("Sms server STARTED with pid: {0}".format(
         sms_server_process.pid))
-
-    comms_interface_server_process.start()
-    logger.info("Comms interface server STARTED with pid: {0}".format(
-        comms_interface_server_process.pid))
 
     meas_json_listener.start()
     logger.info("meas_json listener STARTED with pid: {0}".format(
@@ -247,6 +243,19 @@ if __name__ == "__main__":
     try:
         queue_measurement_size_prev = 0
         while True:
+
+            if not comms_interface_server_process.is_alive():
+                gpsd_listener.terminate()
+                gpsd_listener.join()
+                sms_server_process.terminate()
+                sms_server_process.join()
+                meas_json_listener.terminate()
+                meas_json_listener.join()
+                manager.shutdown()
+                manager.join()
+
+                sys.exit(1)
+
             queue_measurement_size = comms_model.number_of_measurements_in_queue()
             if queue_measurement_size != queue_measurement_size_prev:
                 queue_measurement_size_prev = queue_measurement_size
@@ -263,6 +272,8 @@ if __name__ == "__main__":
         comms_interface_server_process.join()
         gpsd_listener.terminate()
         gpsd_listener.join()
+        sms_server_process.terminate()
+        sms_server_process.join()
         meas_json_listener.terminate()
         meas_json_listener.join()
         manager.shutdown()
