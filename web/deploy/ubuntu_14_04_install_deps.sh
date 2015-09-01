@@ -56,10 +56,11 @@ $HOME/env/bin/initialize_peoplefinder_db "$PEOPLEFINDER_CONF_DIR/config.ini"
 # configurate kannel
 sudo cp "$HOME/peoplefinder/web/deploy/kannel" "/etc/default"
 sudo cp "$HOME/peoplefinder/web/deploy/kannel.conf" "/etc/kannel"
+sudo /etc/init.d/kannel restart
 
 # configure osmobsc
 $HOME/env/bin/configure_osmobsc
-sudo sudo sv restart osmo-nitb
+sudo sv restart osmo-nitb
 
 # setup supervisor
 sudo cp "$HOME/peoplefinder/web/deploy/peoplefinder.conf" "$SUPERVISOR_CONF_DIR"
