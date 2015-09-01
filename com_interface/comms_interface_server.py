@@ -20,7 +20,6 @@ from model.models import (
     DBSession,
     Measure,
     Settings,
-    SearchSession,
 )
 from model.hlr import (
     bind_session as bind_hlr_session,
