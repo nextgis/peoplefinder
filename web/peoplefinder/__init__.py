@@ -41,5 +41,7 @@ def main(global_config, **settings):
 
     config.add_request_method(xmlrpc, 'xmlrpc', reify=True)
 
+    config.add_static_view(name='tiles', path=settings.get('tile_dir'))
+
     config.scan()
     return config.make_wsgi_app()
