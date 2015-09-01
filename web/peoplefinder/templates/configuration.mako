@@ -28,11 +28,11 @@
                 <form action="${request.route_url('configuration')}" method="POST">
                     <div class="form-group">
                         <label for="welcome">Welcome message</label>
-                        <input type="text" class="form-control" name="welcome" id="welcome" value="${wellcome_message}" />
+                        <input type="text" class="form-control" name="welcomeMessage" id="welcomeMessage" value="${welcomeMessage}" />
                     </div>
                     <div class="form-group">
                         <label for="reply">Reply message</label>
-                        <input type="text" class="form-control" name="reply"  id="reply" value="${reply_message}" />
+                        <input type="text" class="form-control" name="replyMessage"  id="replyMessage" value="${replyMessage}" />
                     </div>
                     <div class="form-group">
                         <label for="imsiUpdate">IMSI update interval (ms)</label>
