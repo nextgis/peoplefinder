@@ -2,7 +2,7 @@
 
 #add user
 USER_NAME=cloud
-echo Add new user '$USER_NAME', please enter password below...
+echo Add new user "$USER_NAME", please enter password below...
 sudo adduser $USER_NAME
 sudo usermod -a -G sudo,adm cloud
 su -l $USER_NAME
@@ -14,24 +14,30 @@ SUPERVISOR_CONF_DIR=/etc/supervisor/conf.d
 PEOPLEFINDER_CONF_DIR=/etc/peoplefinder
 PEOPLEFINDER_LOG_DIR=/var/log/peoplefinder
 
-sudo apt-get install aptitude
-sudo apt-get install python-dev
+# update package list
+sudo apt-get update
+
+# install python-dev
+sudo apt-get -y install python-dev
 
 # install nginx
-sudo apt-get install python-software-properties
-sudo add-apt-repository ppa:nginx/stable
+sudo apt-get -y install python-software-properties
+sudo add-apt-repository ppa:nginx/stable -y
 sudo apt-get update
-sudo apt-get install software-properties-common
-sudo apt-get install nginx
-sudo apt-get install kannel
+sudo apt-get -y install software-properties-common
+sudo apt-get -y install nginx
+sudo apt-get -y install kannel
 
 # install pip & virtualenv
-sudo aptitude install python-pip
+sudo apt-get -y install python-pip
 sudo pip install virtualenv
 
 # install supervisor
-sudo aptitude install supervisor
+sudo apt-get -y install supervisor
 sudo service supervisor restart
+
+# install git
+sudo apt-get -y install git
 
 # create env into home directory
 virtualenv $HOME/env
