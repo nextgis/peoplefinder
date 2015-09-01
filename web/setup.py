@@ -40,5 +40,6 @@ setup(name='peoplefinder',
       main = peoplefinder:main
       [console_scripts]
       initialize_peoplefinder_db = peoplefinder.scripts.initializedb:main
+      configure_osmobsc = peoplefinder.scripts.configure_osmobsc.py:main
       """,
       )

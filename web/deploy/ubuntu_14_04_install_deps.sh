@@ -23,6 +23,7 @@ sudo add-apt-repository ppa:nginx/stable
 sudo apt-get update
 sudo apt-get install software-properties-common
 sudo apt-get install nginx
+sudo apt-get install kannel
 
 # install pip & virtualenv
 sudo aptitude install python-pip
@@ -51,6 +52,14 @@ sudo cp "$HOME/peoplefinder/web/development.example.ini" "$PEOPLEFINDER_CONF_DIR
 
 # initialize db
 $HOME/env/bin/initialize_peoplefinder_db "$PEOPLEFINDER_CONF_DIR/config.ini"
+
+# configurate kannel
+sudo cp "$HOME/peoplefinder/web/deploy/kannel" "/etc/default"
+sudo cp "$HOME/peoplefinder/web/deploy/kannel.conf" "/etc/kannel"
+
+# configure osmobsc
+$HOME/env/bin/configure_osmobsc
+sudo sudo sv restart osmo-nitb
 
 # setup supervisor
 sudo cp "$HOME/peoplefinder/web/deploy/peoplefinder.conf" "$SUPERVISOR_CONF_DIR"

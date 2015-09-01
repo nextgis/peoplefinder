@@ -113,76 +113,10 @@ class CommsInterfaceServer(object):
         self.xmlrpc_server.register_function(self.stop_tracking)
         self.xmlrpc_server.register_function(self.measure_model.get_current_gps)
         self.xmlrpc_server.register_function(self.start_new_session)
-        self.xmlrpc_server.register_function(self.xmlrpc_get_parameters, "get_parameters")
-        self.xmlrpc_server.register_function(self.xmlrpc_set_parameters, "set_parameters")
 
         self.xmlrpc_thread = threading.Thread(target=self.xmlrpc_server.serve_forever)
         self.xmlrpc_thread.daemon = True
         self.xmlrpc_thread.start()
-
-    def xmlrpc_get_parameters(self):
-        parameters = {}
-        
-        welc_msg_model = self._get_welcome_msg_model()
-        if welc_msg_model is None:
-            parameters["wellcome_message"] = None
-        else:
-            parameters["wellcome_message"] = welc_msg_model.value
-
-        reply_message_model = self._get_reply_msg_model()
-        if reply_message_model is None:
-            parameters["reply_message"] = None
-        else:
-            parameters["reply_message"] = reply_message_model.value
-
-        return parameters
-
-    def xmlrpc_set_parameters(self, parameters):
-        self.logger.info("Parameters to save: {0}".format(parameters) )
-        if "wellcome_message" in parameters:
-            welc_msg_model = self._get_welcome_msg_model()
-            if welc_msg_model is None:
-                with transaction.manager:
-                    obj = Settings(
-                        name="welcomeMessage",
-                        value=parameters["wellcome_message"]
-                    )
-                    DBSession.add(obj)
-            else:
-                with transaction.manager:
-                    welc_msg_model.value = parameters["wellcome_message"]
-                    DBSession.add(welc_msg_model)
-        if "reply_message" in parameters:
-            reply_message_model = self._get_reply_msg_model()
-            if reply_message_model is None:
-                with transaction.manager:
-                    obj = Settings(
-                        name="replyMessage",
-                        value=parameters["reply_message"]
-                    )
-                    DBSession.add(obj)
-            else:
-                with transaction.manager:
-                    reply_message_model.value = parameters["reply_message"]
-                    DBSession.add(reply_message_model)
-
-        return True
-
-    def _get_welcome_msg_model(self):
-        welcome_message_res = DBSession.query(Settings).filter(Settings.name == "welcomeMessage").all()
-        if len(welcome_message_res) != 1:
-            self.logger.error("Settings table not have welcomeMessage value!")
-            return None
-        else:
-            return welcome_message_res[0]
-
-    def _get_reply_msg_model(self):
-        welcome_message_res = DBSession.query(Settings).filter(Settings.name == "replyMessage").all()
-        if len(welcome_message_res) != 1:
-            self.logger.error("Settings table not have replyMessage value!")
-            return None
-        else:
-            return welcome_message_res[0]
 
     def try_run_vty_client(self):
         self.logger.info("Try to create connection to VTY!")
@@ -199,7 +133,7 @@ class CommsInterfaceServer(object):
         except:
             self.vty_client_connection.close()
             self.vty_client_connection = None
-            self.logger.error("Read VTY wellcom message failed!")
+            self.logger.error("Read VTY wellcome message failed!")
             return False
 
         self.logger.info("Connection to VTY is established!")
