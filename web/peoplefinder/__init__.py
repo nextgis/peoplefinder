@@ -23,6 +23,7 @@ def main(global_config, **settings):
 
     xmlrpc_url = 'http://%(xmlrpc.host)s:%(xmlrpc.port)s' % settings
     xmlrpc = lambda request: xmlrpclib.ServerProxy(xmlrpc_url)
+    tile_dir = lambda request: settings.get('tile_dir')
 
     config = Configurator(settings=settings)
     config.include('pyramid_mako')
@@ -39,9 +40,13 @@ def main(global_config, **settings):
     config.add_route('get_imsi_circles', 'imsi/{imsi}/circles')
     config.add_route('send_imsi_message', 'imsi/{imsi}/message')
 
-    config.add_request_method(xmlrpc, 'xmlrpc', reify=True)
-
+    config.add_route('download_tiles_start', '/tiles/download/start')
+    config.add_route('download_tiles_stop', '/tiles/download/stop')
+    config.add_route('download_tiles_status', '/tiles/download/status')
     config.add_static_view(name='tiles', path=settings.get('tile_dir'))
+
+    config.add_request_method(xmlrpc, 'xmlrpc', reify=True)
+    config.add_request_method(tile_dir, 'tile_dir', reify=True)
 
     config.scan()
     return config.make_wsgi_app()

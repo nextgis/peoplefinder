@@ -14,7 +14,8 @@ requires = [
     'pyramid_tm',
     'pyramid_debugtoolbar',
     'zope.sqlalchemy',
-    'waitress'
+    'waitress',
+    'psutil'
 ]
 
 setup(name='peoplefinder',
