@@ -20,4 +20,12 @@ function loadModules() {
     pf.modules.circlesObserver.init();
     pf.modules.unreadSmsStorage.init();
     pf.modules.gpsStatusObserver.init();
+
+    $('#clearAll').click(function () {
+        $.ajax({
+            url: pf.settings.root_url + '/data/clear/all'
+        }).done($.proxy(function () {
+            location.reload();
+        }, this));
+    });
 }
