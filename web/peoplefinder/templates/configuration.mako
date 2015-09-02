@@ -19,7 +19,7 @@
                 <p>Pan and zoom to download tiles locally for the area on the map <input id="tilesDownloader"
                                                                                          type="button"
                                                                                          class="btn btn-default"
-                                                                                         value="Downloading tiles"/></p>
+                                                                                         value="Initializing..."/></p>
 
                 <div id="map"></div>
             </div>

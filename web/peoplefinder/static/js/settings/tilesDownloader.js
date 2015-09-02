@@ -35,7 +35,6 @@
                 dataType: 'json',
                 type: 'GET'
             }).done($.proxy(function (result) {
-                this._state = result.status;
                 this.updateDownloadingButton(this._state);
                 pf.subscriber.publish('observer/tiles/downloading/status/activate');
 
@@ -50,14 +49,17 @@
         },
 
         updateDownloadingButton: function (status) {
-            if (!status) { return false; }
+            if (!status || status === this._state) { return false; }
 
+            this._state = status;
             switch (status) {
                 case 'ready':
                     this.$tilesDownloader.val('Download tiles');
+                    this.$tilesDownloader.prop('class', 'btn btn-success');
                     break;
                 case 'downloading':
                     this.$tilesDownloader.val('Stop downloading');
+                    this.$tilesDownloader.prop('class', 'btn btn-danger');
                     break;
             }
 
@@ -90,6 +92,7 @@
                     this._state = 'downloading';
                     this.$tilesDownloader.val('Stop downloading');
                     this.$tilesDownloader.prop('disabled', false);
+                    this.$tilesDownloader.prop('class', 'btn btn-danger');
                     pf.subscriber.publish('observer/tiles/downloading/status/activate');
                 }, this), 2000);
             }, this));
@@ -110,6 +113,7 @@
                     this._state = 'ready';
                     this.$tilesDownloader.val('Download tiles');
                     this.$tilesDownloader.prop('disabled', false);
+                    this.$tilesDownloader.prop('class', 'btn btn-success');
                     pf.subscriber.publish('observer/tiles/downloading/status/activate');
                 }, this), 2000);
             }, this));
