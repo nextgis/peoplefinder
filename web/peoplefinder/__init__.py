@@ -45,6 +45,8 @@ def main(global_config, **settings):
     config.add_route('download_tiles_status', '/tiles/download/status')
     config.add_static_view(name='tiles', path=settings.get('tile_dir'))
 
+    config.add_route('clear_data', '/data/clear/all')
+
     config.add_request_method(xmlrpc, 'xmlrpc', reify=True)
     config.add_request_method(tile_dir, 'tile_dir', reify=True)
 
