@@ -39,6 +39,9 @@ sudo service supervisor restart
 # install git
 sudo apt-get -y install git
 
+# install libgeo-osm-tiles-perl
+sudo apt-get -y install libgeo-osm-tiles-perl
+
 # create env into home directory
 virtualenv $HOME/env
 
