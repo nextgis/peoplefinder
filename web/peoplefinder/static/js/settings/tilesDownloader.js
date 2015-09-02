@@ -35,7 +35,7 @@
                 dataType: 'json',
                 type: 'GET'
             }).done($.proxy(function (result) {
-                this.updateDownloadingButton(this._state);
+                this.updateDownloadingButton(result.status);
                 pf.subscriber.publish('observer/tiles/downloading/status/activate');
 
             }, this));
