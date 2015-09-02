@@ -73,7 +73,7 @@ sudo sv restart osmo-nitb
 
 # setup supervisor
 sudo cp "$HOME/peoplefinder/web/deploy/peoplefinder.conf" "$SUPERVISOR_CONF_DIR"
-sudo cp "$HOME/peoplefinder/com_interface/comms_interface.conf" "$SUPERVISOR_CONF_DIR"
+sudo cp "$HOME/peoplefinder/web/deploy/comms_interface.conf" "$SUPERVISOR_CONF_DIR"
 sudo supervisorctl reread
 sudo supervisorctl update
 
