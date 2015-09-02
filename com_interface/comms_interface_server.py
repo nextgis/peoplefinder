@@ -28,6 +28,10 @@ from model.hlr import (
     Sms,
 )
 
+pf_subscriber_imsi = "1"
+pf_subscriber_extension = "10001"
+pf_subscriber_name = "peoplefinder"
+
 
 class RequestHandler(SimpleXMLRPCRequestHandler):
     rpc_paths = ('/RPC2',)
@@ -59,21 +63,13 @@ class CommsInterfaceServer(object):
         self.proc_measure_thread = None
         self.proc_unknow_adress_sms_thread = None
 
-        self.pf_phone_number = "10001"
+        self.pf_phone_number = pf_subscriber_extension
         self.measure_update_period = 3
 
         bind_session(self.pf_db_conn_str)
         bind_hlr_session(self.hlr_db_conn_str)
 
         self.vty_use_send_sms_rlock = threading.RLock()
-
-    def start_new_session(self):
-        with transaction.manager:
-            DBSession.query(Measure).delete()
-            HLRDBSession.query(Sms).delete()
-            HLRDBSession.query(Subscriber).filter(Subscriber.extension != self.pf_phone_number).delete()
-
-        return True
 
     def serve_forever(self):
         self.try_run_xmlrpc_server()
@@ -92,6 +88,14 @@ class CommsInterfaceServer(object):
                 self.try_run_vty_client()
 
             time.sleep(0.1)
+
+    def start_new_session(self):
+        with transaction.manager:
+            DBSession.query(Measure).delete()
+            HLRDBSession.query(Sms).delete()
+            HLRDBSession.query(Subscriber).filter(Subscriber.extension != self.pf_phone_number).delete()
+
+        return True
 
     def try_run_xmlrpc_server(self):
         try:
@@ -338,32 +342,6 @@ class CommsInterfaceServer(object):
 
             time.sleep(silent_sms_interval)
             self.__tracking_cicle_number += 1
-
-    def vty_conf_meas_feed(self):
-        if self.vty_client_connection is None:
-            return False
-
-        try:
-            self.vty_client_connection.write("enable\n")
-
-            self.vty_client_connection.read_until("OpenBSC#", self.__readtimeout_secs)
-            self.vty_client_connection.write("configure terminal\n")
-
-            self.vty_client_connection.read_until("OpenBSC(config)#", self.__readtimeout_secs)
-            self.vty_client_connection.write("mncc-int\n")
-
-            self.vty_client_connection.read_until("OpenBSC(config-mncc-int)#", self.__readtimeout_secs)
-            self.vty_client_connection.write("meas-feed destination 127.0.0.1 8888\n")
-
-            self.vty_client_connection.read_until("OpenBSC(config-mncc-int)#", self.__readtimeout_secs)
-            self.vty_client_connection.write("write file\n")
-
-            self.vty_client_connection.read_until("OpenBSC(config-mncc-int)#", self.__readtimeout_secs)
-
-            return True
-        except:
-            self.vty_client_connection = None
-            return False
 
     def vty_send_silent_sms(self, imsi):
         self.logger.debug("XMLRPC command: send silent sms to imsi: {0}".format(imsi))

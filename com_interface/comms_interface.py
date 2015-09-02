@@ -165,50 +165,6 @@ if __name__ == "__main__":
     manager.start()
     comms_model = manager.CommsModel()
 
-    # Configurate nitb =======================================================
-    # pf_phone_number = comms_model.get_pf_phone_number()
-    # pf_imsi = comms_model.get_pf_imsi()
-
-    # vty_client = VTYClient(configuration)
-    # if vty_client.try_connect() is False:
-    #     logger.error("Connect to osmo nitb VTY FAILURE!")
-    #     manager.shutdown()
-    #     manager.join()
-    #     sys.exit(1)
-
-    # if vty_client.conf_meas_feed() is True:
-    #     logger.info("Configurate osmo nitb measurements over VTY SUCCESS!")
-    # else:
-    #     logger.error("Configurate osmo nitb measurements over VTY FAILURE!")
-    #     manager.shutdown()
-    #     manager.join()
-    #     sys.exit(1)
-
-    # vty_client = None
-
-    # pf_subscriber = HLRDBSession.query(Subscriber).filter(Subscriber.extension == pf_phone_number).all()
-    # if len(pf_subscriber) > 1:
-    #     logger.error("HLR has incorrect structure more then one subscribers with extension {0}".format(pf_phone_number))
-    #     manager.shutdown()
-    #     manager.join()
-    #     sys.exit(1)
-
-    # if len(pf_subscriber) == 0:
-    #     obj = Subscriber(created=datetime.datetime.fromtimestamp(time.time()),
-    #                      updated=datetime.datetime.fromtimestamp(time.time()),
-    #                      imsi=comms_model.get,
-    #                      name="peoplefinder",
-    #                      extension=pf_phone_number,
-    #                      authorized=1,
-    #                      lac=0,
-    #                      )
-    #     with transaction.manager:
-    #         HLRDBSession.add(obj)
-    #         logger.info("Add PF subscriber. imsi: {0}, extension: {1}".format(pf_imsi, pf_phone_number))
-
-    # if len(pf_subscriber) == 1:
-    #     logger.info("PF subscriber with phone number {0} already created.".format(pf_phone_number))
-
     # Init processes =========================================================
     logger.info("Init comms interface server")
     comms_interface_server_process = multiprocessing.Process(target=start_comms_interface_server_process, args=(configuration, comms_model, ))

@@ -1,5 +1,7 @@
 import os
 import sys
+import time
+import datetime
 import transaction
 
 from sqlalchemy import engine_from_config
@@ -9,12 +11,22 @@ from pyramid.paster import (
     setup_logging,
     )
 
+from model.hlr import (
+    HLRDBSession,
+    Subscriber
+    )
+
 from model.models import (
     DBSession,
     Settings,
     Base,
     )
 
+from com_interface.comms_interface_server import (
+    pf_subscriber_imsi,
+    pf_subscriber_extension,
+    pf_subscriber_name
+    )
 
 def usage(argv):
     cmd = os.path.basename(argv[0])
@@ -33,6 +45,9 @@ def main(argv=sys.argv):
     DBSession.configure(bind=engine)
     Base.metadata.create_all(engine)
 
+    hlr_engine = engine_from_config(settings, 'sqlalchemy.hlr.')
+    HLRDBSession.configure(bind=hlr_engine)
+
     # initial settings
     with transaction.manager:
         DBSession.add_all([
@@ -50,4 +65,16 @@ def main(argv=sys.argv):
                 value='Your SMSs are being sent to a mobile search and rescue team. ' + \
                       'Reply to this message to communicate.'
             ),
+        ])
+
+        HLRDBSession.add_all([
+            Subscriber(
+                created=datetime.datetime.fromtimestamp(time.time()),
+                updated=datetime.datetime.fromtimestamp(time.time()),
+                imsi=pf_subscriber_imsi,
+                name=pf_subscriber_name,
+                extension=pf_subscriber_extension,
+                authorized=1,
+                lac=0
+            )
         ])
