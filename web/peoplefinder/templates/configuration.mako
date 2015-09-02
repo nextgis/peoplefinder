@@ -16,7 +16,8 @@
 
                 <h2 class="text-uppercase">Downloading tiles</h2>
 
-                <p>Pan and zoom to download tiles locally for the area on the map <input type="button"
+                <p>Pan and zoom to download tiles locally for the area on the map <input id="tilesDownloader"
+                                                                                         type="button"
                                                                                          class="btn btn-default"
                                                                                          value="Downloading tiles"/></p>
 
