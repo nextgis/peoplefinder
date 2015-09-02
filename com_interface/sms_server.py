@@ -9,27 +9,27 @@ import logging_utils
 
 
 class PostHandler(BaseHTTPRequestHandler):
-    def do_POST(self):
-        self.server.logger.info("do_POST!")
+    # def do_POST(self):
+    #     self.server.logger.info("do_POST!")
 
-        ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
+    #     ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
 
-        self.server.logger.info("ctype: {0}".format(ctype))
-        self.server.logger.info("pdict: {0}".format(pdict))
+    #     self.server.logger.info("ctype: {0}".format(ctype))
+    #     self.server.logger.info("pdict: {0}".format(pdict))
 
-        varLen = int(self.headers['Content-Length'])
-        postVars = self.rfile.read(varLen)
+    #     varLen = int(self.headers['Content-Length'])
+    #     postVars = self.rfile.read(varLen)
         
-        self.server.logger.info("self.headers: {0}".format(self.headers))
+    #     self.server.logger.info("self.headers: {0}".format(self.headers))
 
-        self.send_response(200)
-        self.end_headers()
+    #     self.send_response(200)
+    #     self.end_headers()
 
     def do_GET(self):
+        self.server.logger.info("Received http request from kannel: {0}".format(self.path))
         o = urlparse.urlparse(self.path)
-        self.server.logger.info("o: {0}".format(o))
         parameters = urlparse.parse_qs(o.query)
-        self.server.logger.info("parameters: {0}".format(parameters))
+
         if 'source' in parameters:
             self.server.comms_model.put_unknown_adresses_sms(parameters)
         else:
@@ -40,12 +40,10 @@ class PostHandler(BaseHTTPRequestHandler):
 
 class SMSServer(SocketServer.TCPServer):
     def __init__(self, configuration, comms_model):
-        port = 8085
-
         self.comms_model = comms_model
         self.logger = logging_utils.get_logger("SMSServer")
 
-        SocketServer.TCPServer.__init__(self, ("", port), PostHandler)
+        SocketServer.TCPServer.__init__(self, ("", 8085), PostHandler)
 
 
 # for tests
