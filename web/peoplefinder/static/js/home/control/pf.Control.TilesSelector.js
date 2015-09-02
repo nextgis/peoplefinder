@@ -46,7 +46,7 @@ L.Control.TilesSelector = L.Control.extend({
     },
 
     addLocalTilesLayer: function () {
-        this._map._tilesLayer = L.tileLayer('http://otile3.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png', {
+        this._map._tilesLayer = L.tileLayer(pf.settings.root_url + '/tiles/{z}/{x}/{y}.png', {
             attribution: 'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
             maxZoom: 18
         });
