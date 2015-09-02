@@ -66,13 +66,14 @@
         startDownload: function () {
             var map = pf.viewmodel.map,
                 bounds = map.getBounds(),
+                zoom = map.getZoom(),
                 params = {
                     bounds: [
                         bounds._southWest.lng,
                         bounds._southWest.lat,
                         bounds._northEast.lng,
                         bounds._northEast.lat].join(','),
-                    zoom: map.getZoom()
+                    zoom: [zoom, zoom].join(':')
                 };
 
             pf.subscriber.publish('observer/tiles/downloading/status/deactivate');
