@@ -16,8 +16,9 @@
 
                 <h2 class="text-uppercase">Downloading tiles</h2>
 
-                <p>Pan and zoom to download tiles locally for the area on the map <input type="button" class="btn btn-default"
-                                                              value="Downloading tiles"/></p>
+                <p>Pan and zoom to download tiles locally for the area on the map <input type="button"
+                                                                                         class="btn btn-default"
+                                                                                         value="Downloading tiles"/></p>
 
                 <div id="map"></div>
             </div>
@@ -28,23 +29,26 @@
                 <form action="${request.route_url('configuration')}" method="POST">
                     <div class="form-group">
                         <label for="welcome">Welcome message</label>
-                        <input type="text" class="form-control" name="welcomeMessage" id="welcomeMessage" value="${welcomeMessage}" />
+                        <input type="text" class="form-control" name="welcomeMessage" id="welcomeMessage"
+                               value="${welcomeMessage}"/>
                     </div>
                     <div class="form-group">
                         <label for="reply">Reply message</label>
-                        <input type="text" class="form-control" name="replyMessage"  id="replyMessage" value="${replyMessage}" />
+                        <input type="text" class="form-control" name="replyMessage" id="replyMessage"
+                               value="${replyMessage}"/>
                     </div>
                     <div class="form-group">
                         <label for="imsiUpdate">IMSI update interval (ms)</label>
-                        <input type="number" class="form-control" name="imsiUpdate"  id="imsiUpdate" value="${imsiUpdate}" />
+                        <input type="number" class="form-control" name="imsiUpdate" id="imsiUpdate"
+                               value="${imsiUpdate}"/>
                     </div>
                     <div class="form-group">
                         <label for="smsUpdate">SMS update interval (ms)</label>
-                        <input type="number" class="form-control" name="smsUpdate"  id="smsUpdate" value="${smsUpdate}" />
+                        <input type="number" class="form-control" name="smsUpdate" id="smsUpdate" value="${smsUpdate}"/>
                     </div>
                     <div class="form-group">
                         <label for="silentSms">Silent SMS interval (ms)</label>
-                        <input type="number" class="form-control" name="silentSms"  id="silentSms" value="${silentSms}" />
+                        <input type="number" class="form-control" name="silentSms" id="silentSms" value="${silentSms}"/>
                     </div>
                     <button type="submit" class="btn btn-primary">Submit</button>
                 </form>
@@ -59,4 +63,10 @@
     % else:
         <script src="${request.static_url('peoplefinder:static/build/peoplefinder.min.js')}"></script>
     % endif
+
+    <script>
+        pf.settings = {};
+        pf.settings.root_url = '${request.application_url}';
+    </script>
+
 </%block>
