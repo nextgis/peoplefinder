@@ -10,7 +10,7 @@ from multiprocessing.managers import BaseManager
 import transaction
 
 import logging_utils
-from model.models import bind_session, DBSession, Measure
+from model.models import bind_session, DBSession, Measure, Settings
 from model.hlr import bind_session as bind_hlr_session, HLRDBSession, Subscriber, Sms
 
 from meas_json_client import MeasJsonListenerProcess
@@ -103,8 +103,9 @@ CommsModelManager.register('CommsModel', CommsModel)
 
 
 def start_comms_interface_server_process(configuration, comms_model):
+    logger = logging_utils.get_logger(multiprocessing.current_process().name)
     try:
-        srv = CommsInterfaceServer(configuration, comms_model, multiprocessing.Event())
+        srv = CommsInterfaceServer(configuration, comms_model, multiprocessing.Event(), logger)
         srv.serve_forever()
     except ValueError as err:
         logger.error("Cann't init comms interface server: {0}".format(err.message))
@@ -112,8 +113,14 @@ def start_comms_interface_server_process(configuration, comms_model):
 
 
 def start_sms_server(configuration, comms_model):
-    srv = SMSServer(configuration, comms_model)
-    srv.serve_forever()
+    logger = logging_utils.get_logger(multiprocessing.current_process().name)
+    try:
+        srv = SMSServer(configuration, comms_model, logger)
+        srv.serve_forever()
+    except ValueError as err:
+        print "Cann't init sms server: {0}".format(err.message)
+        logger.error("Cann't init sms server: {0}".format(err.message))
+        sys.exit(1)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -140,6 +147,7 @@ if __name__ == "__main__":
     try:
         bind_session(pf_db_conn_str)
         DBSession.query(Measure).count()
+        DBSession.query(Settings).count()
     except:
         logger.error("People finder DB connection err")
         raise
@@ -167,13 +175,24 @@ if __name__ == "__main__":
 
     # Init processes =========================================================
     logger.info("Init comms interface server")
-    comms_interface_server_process = multiprocessing.Process(target=start_comms_interface_server_process, args=(configuration, comms_model, ))
+    try:
+        srv = CommsInterfaceServer(configuration, comms_model, multiprocessing.Event())
+        comms_interface_server_process = multiprocessing.Process(target=srv.serve_forever)
+    except ValueError as err:
+        logger.error("Cann't init comms interface server: {0}".format(err.message))
+        sys.exit(1)
 
+    
     logger.info("Init gpsd listener")
     gpsd_listener = GPSDListenerProcess(comms_model)
 
     logger.info("Init sms server")
-    sms_server_process = multiprocessing.Process(target=start_sms_server, args=(configuration, comms_model, ))
+    try:
+        srv = SMSServer(comms_model)
+        sms_server_process = multiprocessing.Process(target=srv.serve_forever)
+    except ValueError as err:
+        logger.error("Cann't init sms server: {0}".format(err.message))
+        sys.exit(1)
 
     logger.info("Init meas_json listener")
     meas_json_listener = MeasJsonListenerProcess(comms_model, args.test_mode)
@@ -199,19 +218,6 @@ if __name__ == "__main__":
     try:
         queue_measurement_size_prev = 0
         while True:
-
-            if not comms_interface_server_process.is_alive():
-                gpsd_listener.terminate()
-                gpsd_listener.join()
-                sms_server_process.terminate()
-                sms_server_process.join()
-                meas_json_listener.terminate()
-                meas_json_listener.join()
-                manager.shutdown()
-                manager.join()
-
-                sys.exit(1)
-
             queue_measurement_size = comms_model.number_of_measurements_in_queue()
             if queue_measurement_size != queue_measurement_size_prev:
                 queue_measurement_size_prev = queue_measurement_size

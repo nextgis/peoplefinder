@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-import cgi
+import sys
+#import cgi
 import urlparse
 import SocketServer
 
@@ -39,12 +40,14 @@ class PostHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
 class SMSServer(SocketServer.TCPServer):
-    def __init__(self, configuration, comms_model):
+    def __init__(self, comms_model):
+        try:
+            SocketServer.TCPServer.__init__(self, ("", 8085), PostHandler)
+        except:
+            raise ValueError(sys.exc_info()[0])
+
         self.comms_model = comms_model
         self.logger = logging_utils.get_logger("SMSServer")
-
-        SocketServer.TCPServer.__init__(self, ("", 8085), PostHandler)
-
 
 # for tests
 # import urllib, urllib2
