@@ -75,7 +75,7 @@
                         bounds._southWest.lat,
                         bounds._northEast.lng,
                         bounds._northEast.lat].join(','),
-                    zoom: [zoom, zoom].join(':')
+                    zoom: [zoom, 18].join(':')
                 };
 
             pf.subscriber.publish('observer/tiles/downloading/status/deactivate');
