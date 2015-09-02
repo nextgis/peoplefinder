@@ -9,5 +9,6 @@ $(document).ready(function () {
 
 function loadModules() {
     pf.modules.map.init();
+    pf.modules.downloadingStatusObserver.init();
     pf.modules.tilesDownloader.init();
 }
