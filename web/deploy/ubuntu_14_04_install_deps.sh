@@ -5,7 +5,6 @@ USER_NAME=cloud
 echo Add new user "$USER_NAME", please enter password below...
 sudo adduser $USER_NAME
 sudo usermod -a -G sudo,adm cloud
-su -l $USER_NAME
 
 # default values
 HOME=/home/$USER_NAME
@@ -43,24 +42,23 @@ sudo apt-get -y install git
 sudo apt-get -y install libgeo-osm-tiles-perl
 
 # create env into home directory
-virtualenv $HOME/env
+sudo -H -u  $USER_NAME bash -c 'virtualenv '$HOME'/env'
 
 # create directiories
 sudo mkdir -p $PEOPLEFINDER_CONF_DIR
 sudo mkdir -p $PEOPLEFINDER_LOG_DIR
 
 # clone repository
-git clone https://github.com/nextgis/peoplefinder.git "$HOME/peoplefinder"
-
-export PYTHONPATH="${PYTHONPATH}:$HOME/peoplefinder"
+sudo -H -u  $USER_NAME bash -c 'git clone https://github.com/nextgis/peoplefinder.git '$HOME'/peoplefinder'
 
 # install application
-$HOME/env/bin/pip install -e $HOME/peoplefinder/web
-$HOME/env/bin/pip install uwsgi
+sudo -H -u  $USER_NAME bash -c $HOME'/env/bin/pip install -e '$HOME'/peoplefinder/web'
+sudo -H -u  $USER_NAME bash -c $HOME'/env/bin/pip install uwsgi'
+
 sudo cp "$HOME/peoplefinder/web/development.example.ini" "$PEOPLEFINDER_CONF_DIR/config.ini"
 
 # initialize db
-$HOME/env/bin/initialize_peoplefinder_db "$PEOPLEFINDER_CONF_DIR/config.ini"
+sudo PYTHONPATH="${PYTHONPATH}:$HOME/peoplefinder" $HOME/env/bin/initialize_peoplefinder_db "$PEOPLEFINDER_CONF_DIR/config.ini"
 
 # configurate kannel
 sudo cp "$HOME/peoplefinder/web/deploy/kannel" "/etc/default"
@@ -68,7 +66,7 @@ sudo cp "$HOME/peoplefinder/web/deploy/kannel.conf" "/etc/kannel"
 sudo /etc/init.d/kannel restart
 
 # configure osmobsc
-$HOME/env/bin/configure_osmobsc
+sudo  $HOME/env/bin/python $HOME/peoplefinder/web/peoplefinder/scripts/configure_osmobsc.py
 sudo sv restart osmo-nitb
 
 # setup supervisor
