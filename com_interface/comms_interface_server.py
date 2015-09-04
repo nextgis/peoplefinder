@@ -293,9 +293,9 @@ class CommsInterfaceServer(object):
             try:
                 imsi = self.__imis_reday_for_silent_sms_list.get_nowait()
                 if self.vty_send_silent_sms(imsi):
-                    self.logger.info("Send silent sms to IMSI %s!" % imsi)
+                    self.logger.info("Tracking. Send silent sms to IMSI %s!" % imsi)
                 else:
-                    self.logger.error("Silent sms to IMSI %s NOT SEND!" % imsi)
+                    self.logger.error("Tracking. Silent sms to IMSI %s NOT SEND!" % imsi)
             except Queue.Empty:
                 time.sleep(0.1)
 
@@ -322,23 +322,22 @@ class CommsInterfaceServer(object):
 
             for (imsi, dest_addr, sent, created) in sub_sms:
                 if dest_addr is not None:
-                    self.logger.debug(" sub: {0}, sms: {1}!".format(imsi, dest_addr))
                     #if (sent is not None) or (self.__tracking_cicle_number == 0):
                     if (sent is not None):
                         self.__imis_reday_for_silent_sms_list.put(imsi)
+                        self.logger.debug("Tracking. Put imsi {0} to queue for send silent sms!".format(imsi))
+                    else:
+                        self.logger.debug("Tracking. Don't put imsi {0} to queue for send silent sms - not answer previous one!".format(imsi))
                 else:
-                    self.logger.debug(" No silent sms for sub: {0}!".format(imsi))
+                    self.logger.debug("Tracking. Put imsi {0} to queue for send silent sms!".format(imsi))
                     self.__imis_reday_for_silent_sms_list.put(imsi)
 
             silent_sms_interval = DBSession.query(Settings.value).filter(Settings.name == "silentSms").all()
-            self.logger.debug(" silent_sms_interval: {0}!".format(silent_sms_interval))
             if len(silent_sms_interval) != 1:
                 self.logger.error("Settings table not have silentSms value!")
-                silent_sms_interval = 3
+                silent_sms_interval = self.measure_update_period
             else:
                 silent_sms_interval = int(silent_sms_interval[0][0]) / 1000
-
-            self.logger.debug(" silent_sms_interval: {0}!".format(silent_sms_interval))
 
             time.sleep(silent_sms_interval)
             self.__tracking_cicle_number += 1
