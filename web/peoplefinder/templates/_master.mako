@@ -7,7 +7,7 @@
     <title>PeopleFinder</title>
     <link href="${request.static_url('peoplefinder:static/contrib/bootstrap/css/bootstrap.min.css')}" rel="stylesheet">
     <link href="${request.static_url('peoplefinder:static/contrib/font-awesome/css/font-awesome.min.css')}" rel="stylesheet">
-    <link href="${request.static_url('peoplefinder:static/contrib/leaflet/leaflet-1.0.0-b1/leaflet.css')}" rel="stylesheet">
+    <link href="${request.static_url('peoplefinder:static/contrib/leaflet-0.7.2/leaflet.css')}" rel="stylesheet">
     <link href="${request.static_url('peoplefinder:static/styles/styles.css')}" rel="stylesheet">
     <%block name="css"/>
 </head>
@@ -56,7 +56,7 @@
 
 <script src="${request.static_url('peoplefinder:static/contrib/jquery/jquery-1.11.3.min.js')}"></script>
 <script src="${request.static_url('peoplefinder:static/contrib/bootstrap/js/bootstrap.min.js')}"></script>
-<script src="${request.static_url('peoplefinder:static/contrib/leaflet/leaflet-1.0.0-b1/leaflet-src.js')}"></script>
+<script src="${request.static_url('peoplefinder:static/contrib/leaflet-0.7.2/leaflet.js')}"></script>
 <script src="${request.static_url('peoplefinder:static/contrib/jquery-ui/jquery-ui.js')}"></script>
 <script src="${request.static_url('peoplefinder:static/contrib/jtable/jquery.jtable.js')}"></script>
 <script src="${request.static_url('peoplefinder:static/contrib/js-cookie/js.cookie.js')}"></script>

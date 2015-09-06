@@ -197,6 +197,8 @@ div.footer .span4 {
     padding-top: 10px
 }
 
+/* setting page */
+
 #settings h1,
 #settings h2 {
     font-weight: bold;
@@ -215,4 +217,46 @@ div.footer .span4 {
 #mapDownloading {
     width: 100%;
     height: 300px;
+}
+
+/* pf.Control.ZoomValue styles */
+
+.leaflet-control-zoom-value {
+    text-align: center;
+}
+
+.leaflet-control-zoom-value-in,
+.leaflet-control-zoom-value-out,
+.leaflet-control-zoom-value-val {
+    font: bold 18px 'Lucida Console', Monaco, monospace;
+    text-indent: 1px;
+}
+
+span.leaflet-control-zoom-value-val {
+    background-color: #fff;
+    border-bottom: 1px solid #ccc;
+    width: 26px;
+    height: 26px;
+    line-height: 26px;
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    color: black;
+    font-weight: normal;
+}
+
+.leaflet-control-zoom-value-out {
+    font-size: 20px;
+}
+
+.leaflet-touch .leaflet-control-zoom-value-in {
+    font-size: 22px;
+}
+
+.leaflet-touch .leaflet-control-zoom-value-out {
+    font-size: 24px;
+}
+
+.leaflet-oldie .leaflet-control-zoom-value {
+    border: 1px solid #999;
 }
