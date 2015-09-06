@@ -24,7 +24,8 @@
         buildMap: function () {
             return L.map('map', {
                 zoomControl: false,
-                zoomValueControl: true
+                zoomValueControl: true,
+                maxZoom: 15
             });
         },
 
