@@ -11,6 +11,7 @@
             pf.viewmodel.map = this._map;
 
             this.setInitialView();
+            L.control.scale().addTo(this._map);
             this._map.tilesSelector._selectTileLayer(true);
         },
 
