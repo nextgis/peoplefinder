@@ -259,6 +259,27 @@ class CommsInterfaceServer(object):
                     self.logger.debug("Send reply message: {0}".format(reply_msg))
                     if not self.vty_send_sms_by_phone_number(sms_info['source'][0], reply_msg):
                         self.logger.error("Reply message not send.")
+
+                    with transaction.manager:
+                        HLRDBSession.add_all([
+                            Sms(
+                                created=datetime.datetime.fromtimestamp(time.time()),
+                                sent=None,
+                                deliver_attempts=1,
+                                reply_path_req=0,
+                                status_rep_req=0,
+                                protocol_id=0,
+                                data_coding_scheme=0,
+                                ud_hdr_ind=0,
+                                src_addr=sms_info['source'][0],
+                                src_ton=0,
+                                src_npi=0,
+                                dest_addr=sms_info['destination'][0],
+                                dest_ton=0,
+                                dest_npi=0,
+                                text=sms_info['text'][0]
+                            )
+                        ])
             else:
                 time.sleep(0.1)
         self.logger.info("Process unknown adressing sms thread FINISH!")

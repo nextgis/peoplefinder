@@ -20,7 +20,7 @@ class PostHandler(BaseHTTPRequestHandler):
 
     #     varLen = int(self.headers['Content-Length'])
     #     postVars = self.rfile.read(varLen)
-        
+
     #     self.server.logger.info("self.headers: {0}".format(self.headers))
 
     #     self.send_response(200)
@@ -50,11 +50,4 @@ class SMSServer(SocketServer.TCPServer):
         self.logger = logging_utils.get_logger("SMSServer")
 
 # for tests
-# import urllib, urllib2
-# url = 'localhost:8085/sms'
-# values = dict(source='49949', destination='10002', charset='UTF-8', coding='0', text='NextGIS')
-# data = urllib.urlencode(values)
-# req = urllib2.Request(url, data)
-# rsp = urllib2.urlopen(req)
-# or
-# curl -d "source=49949&destination=10002&charset=UTF-8&coding=0&text=NextGIS" http://localhost:8085
+# curl "http://localhost:8085/sms?source=24664&destination=89158912171&charset=UTF-8&coding=0&text=NextGIS"
