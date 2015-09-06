@@ -22,7 +22,10 @@
 
 
         buildMap: function () {
-            return L.map('map');
+            return L.map('map', {
+                zoomControl: false,
+                zoomValueControl: true
+            });
         },
 
 
