@@ -94,8 +94,8 @@ def get_imsi_messages(request):
         Sms.created,
         Sms.sent
     ).filter(
-        (((Sms.src_addr == Subscriber.extension) & (Sms.dest_addr == pfnum)) |
-         ((Sms.dest_addr == Subscriber.extension) & (Sms.src_addr == pfnum))) &
+        ((Sms.src_addr == Subscriber.extension) |
+         (Sms.dest_addr == Subscriber.extension)) &
         (Subscriber.imsi == imsi) &
         (Sms.protocol_id != 64)
     ).order_by(Sms.created.asc())
@@ -106,12 +106,23 @@ def get_imsi_messages(request):
     }
 
     for obj in query.all():
+        dest_subscriber_res = HLRDBSession.query(
+            Subscriber.imsi
+        ).filter(
+            Subscriber.extension == obj.dest_addr
+        ).all()
+
+        dest_subscriber_imsi = None
+        if len(dest_subscriber_res) > 0:
+            dest_subscriber_imsi = int(dest_subscriber_res[0].imsi)
+
         direction = 'from' if obj.dest_addr == pfnum else 'to'
         sms = {
             'id': obj.id,
             'text': obj.text,
             'type': direction,
-            'ts': time.strftime('%d %b %Y, %H:%M:%S', obj.created.timetuple())
+            'ts': time.strftime('%d %b %Y, %H:%M:%S', obj.created.timetuple()),
+            'dest': dest_subscriber_imsi,
         }
 
         if direction == 'to':
