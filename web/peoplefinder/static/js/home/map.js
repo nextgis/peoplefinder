@@ -2,11 +2,16 @@
     pf.modules.map = {};
     $.extend(pf.modules.map, {
 
+        _map: null,
+
         init: function () {
             this.setDom();
-            this.buildMap();
+
+            this._map = this.buildMap();
+            pf.viewmodel.map = this._map;
+
             this.setInitialView();
-            pf.viewmodel.map.tilesSelector._selectTileLayer(true);
+            this._map.tilesSelector._selectTileLayer(true);
         },
 
 
@@ -16,12 +21,12 @@
 
 
         buildMap: function () {
-            pf.viewmodel.map = L.map('map');
+            return L.map('map');
         },
 
 
         setInitialView: function () {
-            pf.viewmodel.map.setView([-26.017, 139.219], 4);
+            this._map.setView([-26.017, 139.219], 4);
         }
     });
 }(jQuery, pf, L));
