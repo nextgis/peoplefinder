@@ -117,7 +117,7 @@ def get_imsi_messages(request):
         dest = "xx"
         if len(dest_subscriber_res) > 0:
             dest_imsi = int(dest_subscriber_res[0].imsi)
-            dest = "server" if dest_imsi == pimsi else str(dest_imsi)
+            dest = "station" if dest_imsi == int(pimsi) else str(dest_imsi)
 
         direction = 'to' if obj.src_addr == pfnum else 'from'
         sms = {
