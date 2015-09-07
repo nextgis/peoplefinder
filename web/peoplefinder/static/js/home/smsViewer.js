@@ -19,7 +19,8 @@
         addSms: function (imsi, smsItem) {
             var cssClasses = ['sms'],
                 isOutgoing = (smsItem.type === 'to'),
-                $smsItem;
+                $smsItem,
+                html;
 
             cssClasses.push(smsItem.type);
 
@@ -28,8 +29,21 @@
                     cssClasses.push('unsent');
                 }
 
-                $smsItem = $('<div id="sms-' + smsItem.id + '" class="' + cssClasses.join(' ') + '">' +
-                    (smsItem.type === 'to' ? 'To' : 'From') + ' (' + smsItem.ts + '):<br/><span>'  + smsItem.text + '</span></div>');
+                html = '<div id="sms-' + smsItem.id + '" class="' + cssClasses.join(' ') + '">';
+
+                html += (smsItem.type === 'to' ? 'To' : 'From ');
+
+                if (smsItem.type === 'from') {
+                    if (smsItem.dest) {
+                        html += smsItem.dest;
+                    } else if (smsItem.dest === null) {
+                        html += 'xx';
+                    }
+                }
+
+                html += ' (' + smsItem.ts + '):<br/><span>' + smsItem.text + '</span></div>';
+
+                $smsItem = $(html);
 
                 $smsItem.prependTo(pf.view.$smsViewer);
 
