@@ -85,7 +85,7 @@ class CommsInterfaceServer(object):
         self.proc_unknow_adress_sms_thread.start()
 
         while not self.time_to_shutdown_event.is_set():
-            if self.try_run_vty_client is None:
+            if self.vty_client_connection is None:
                 self.try_run_vty_client()
 
             time.sleep(0.1)
