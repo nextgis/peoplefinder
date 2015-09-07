@@ -31,7 +31,7 @@
 
                 html = '<div id="sms-' + smsItem.id + '" class="' + cssClasses.join(' ') + '">';
 
-                html += (smsItem.type === 'to' ? 'To' : 'From ');
+                html += (smsItem.type === 'to' ? 'To IMSI' : 'From IMSI to ');
 
                 if (smsItem.type === 'from') {
                     if (smsItem.dest) {
