@@ -17,7 +17,7 @@ L.Control.TilesSelector = L.Control.extend({
 
         $(container).find('input').on('change', $.proxy(function () {
             if (this._map._tilesLayer) {
-                this._map._tilesLayer.remove();
+                this._map.removeLayer(this._map._tilesLayer);
             }
             this._isOnline = !this._isOnline;
             this._selectTileLayer(this._isOnline);

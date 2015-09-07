@@ -3,7 +3,7 @@
     $.extend(pf.modules.tilesDownloader, {
 
         $tilesDownloader: null,
-        _state: null,
+        _state: null, // values: 'downloading', 'ready'
 
         init: function () {
             this.setDom();
@@ -16,6 +16,8 @@
         },
 
         bindEvents: function () {
+            var context = this;
+
             this.$tilesDownloader.click($.proxy(function () {
                 if (this._state === 'ready') {
                     this.startDownload();
@@ -27,6 +29,19 @@
             pf.subscriber.subscribe('/tiles/downloading/status/changed', function (status) {
                 this.updateDownloadingButton(status);
             }, this);
+
+            pf.viewmodel.map.on('zoomend', function () {
+                context._updateDisabledButton(this);
+            });
+        },
+
+        _updateDisabledButton: function (map) {
+            var newZoom = map.getZoom();
+            if (newZoom < 10 && this._state === 'ready') {
+                this.$tilesDownloader.prop('disabled', true);
+            } else {
+                this.$tilesDownloader.prop('disabled', false);
+            }
         },
 
         setInitialStatus: function () {
@@ -37,19 +52,14 @@
             }).done($.proxy(function (result) {
                 this.updateDownloadingButton(result.status);
                 pf.subscriber.publish('observer/tiles/downloading/status/activate');
-
+                this._updateDisabledButton(pf.viewmodel.map);
             }, this));
         },
 
-        downloadingButtonClickHandler: function () {
-            var status = this.$tilesDownloader.data('status') === 'ready' ? 'downloading' : 'ready';
-            pf.subscriber.subscribe('observer/tiles/downloading/status/deactivate');
-            var status =
-                this.toggleDownloadingButton();
-        },
-
         updateDownloadingButton: function (status) {
-            if (!status || status === this._state) { return false; }
+            if (!status || status === this._state) {
+                return false;
+            }
 
             this._state = status;
             switch (status) {
@@ -63,6 +73,7 @@
                     break;
             }
 
+            this._updateDisabledButton(pf.viewmodel.map);
         },
 
         startDownload: function () {
@@ -94,6 +105,7 @@
                     this.$tilesDownloader.prop('disabled', false);
                     this.$tilesDownloader.prop('class', 'btn btn-danger');
                     pf.subscriber.publish('observer/tiles/downloading/status/activate');
+                    this._updateDisabledButton(pf.viewmodel.map);
                 }, this), 2000);
             }, this));
         },
@@ -115,6 +127,7 @@
                     this.$tilesDownloader.prop('disabled', false);
                     this.$tilesDownloader.prop('class', 'btn btn-success');
                     pf.subscriber.publish('observer/tiles/downloading/status/activate');
+                    this._updateDisabledButton(pf.viewmodel.map);
                 }, this), 2000);
             }, this));
         }
