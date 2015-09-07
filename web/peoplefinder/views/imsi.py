@@ -86,6 +86,8 @@ def get_imsi_messages(request):
     imsi = int(request.matchdict['imsi'])
 
     pfnum = request.xmlrpc.get_peoplefinder_number()
+    pimsi = request.xmlrpc.get_peoplefinder_imsi()
+
     query = HLRDBSession.query(
         Sms.id,
         Sms.text,
@@ -112,9 +114,10 @@ def get_imsi_messages(request):
             Subscriber.extension == obj.dest_addr
         ).all()
 
-        dest_subscriber_imsi = None
+        dest = "xx"
         if len(dest_subscriber_res) > 0:
-            dest_subscriber_imsi = int(dest_subscriber_res[0].imsi)
+            dest_imsi = int(dest_subscriber_res[0].imsi)
+            dest = "server" if dest_imsi == pimsi else str(dest_imsi)
 
         direction = 'to' if obj.src_addr == pfnum else 'from'
         sms = {
@@ -122,7 +125,7 @@ def get_imsi_messages(request):
             'text': obj.text,
             'type': direction,
             'ts': time.strftime('%d %b %Y, %H:%M:%S', obj.created.timetuple()),
-            'dest': dest_subscriber_imsi,
+            'dest': dest,
         }
 
         if direction == 'to':

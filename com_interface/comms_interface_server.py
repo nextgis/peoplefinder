@@ -64,6 +64,7 @@ class CommsInterfaceServer(object):
         self.proc_unknow_adress_sms_thread = None
 
         self.pf_phone_number = pf_subscriber_extension
+        self.pf_subscriber_imsi = pf_subscriber_imsi
         self.measure_update_period = 3
 
         bind_session(self.pf_db_conn_str)
@@ -113,6 +114,7 @@ class CommsInterfaceServer(object):
         self.xmlrpc_server.register_function(self.vty_send_sms, "send_sms")
         self.xmlrpc_server.register_function(self.vty_send_silent_sms, "send_silent_sms")
         self.xmlrpc_server.register_function(lambda: self.pf_phone_number, "get_peoplefinder_number")
+        self.xmlrpc_server.register_function(lambda: self.pf_subscriber_imsi, "get_peoplefinder_imsi")
         self.xmlrpc_server.register_function(self.start_tracking)
         self.xmlrpc_server.register_function(self.stop_tracking)
         self.xmlrpc_server.register_function(self.measure_model.get_current_gps)
