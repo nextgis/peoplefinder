@@ -265,7 +265,7 @@ class CommsInterfaceServer(object):
                     with transaction.manager:
                         HLRDBSession.add_all([
                             Sms(
-                                created=datetime.datetime.fromtimestamp(time.time()),
+                                created=datetime.datetime.fromtimestamp(long(time.time())),
                                 sent=None,
                                 deliver_attempts=1,
                                 reply_path_req=0,
