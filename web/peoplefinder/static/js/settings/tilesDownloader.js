@@ -56,13 +56,6 @@
             }, this));
         },
 
-        downloadingButtonClickHandler: function () {
-            var status = this.$tilesDownloader.data('status') === 'ready' ? 'downloading' : 'ready';
-            pf.subscriber.subscribe('observer/tiles/downloading/status/deactivate');
-            var status =
-                this.toggleDownloadingButton();
-        },
-
         updateDownloadingButton: function (status) {
             if (!status || status === this._state) {
                 return false;
