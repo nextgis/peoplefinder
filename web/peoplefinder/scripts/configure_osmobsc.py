@@ -19,7 +19,7 @@ def main(argv=sys.argv):
     try:
         tn.write("enable\n")
         tn.read_until("OpenBSC#", 5)
-        tn.write(" \n")
+        tn.write("configure terminal\n")
         tn.read_until("OpenBSC(config)#", 5)
 
         tn.write("mncc-int\n")
