@@ -41,6 +41,9 @@ sudo apt-get -y install git
 # install libgeo-osm-tiles-perl
 sudo apt-get -y install libgeo-osm-tiles-perl
 
+# install gcc for install peoplefinder (psutil) and uwsgi
+sudo apt-get -y install gcc
+
 # create env into home directory
 sudo -H -u  $USER_NAME bash -c 'virtualenv '$HOME'/env'
 
