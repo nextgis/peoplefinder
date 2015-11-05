@@ -37,7 +37,7 @@ def main(argv=sys.argv):
         tn.write("system-id OSMO-SMPP\n")
         tn.read_until("OpenBSC(config-smpp)#", 5)
 
-        tn.write("esme OSMP\n")
+        tn.write("esme OSMPP\n")
         tn.read_until("OpenBSC(config-smpp-esme)#", 5)
 
         tn.write("password antani\n")
