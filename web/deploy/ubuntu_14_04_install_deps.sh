@@ -62,6 +62,7 @@ sudo cp "$HOME/peoplefinder/web/development.example.ini" "$PEOPLEFINDER_CONF_DIR
 
 # initialize db
 sudo PYTHONPATH="${PYTHONPATH}:$HOME/peoplefinder" $HOME/env/bin/initialize_peoplefinder_db "$PEOPLEFINDER_CONF_DIR/config.ini"
+sudo chown $USER_NAME $HOME/peoplefinder/storage/pf.sqlite
 
 # configurate kannel
 sudo cp "$HOME/peoplefinder/web/deploy/kannel" "/etc/default"
