@@ -71,7 +71,7 @@ sudo /etc/init.d/kannel restart
 
 # configure osmobsc
 sudo  $HOME/env/bin/python $HOME/peoplefinder/web/peoplefinder/scripts/configure_osmobsc.py
-sudo sv restart osmo-nitb
+sudo sv restart osmo-trx osmo-bts osmo-nitb
 
 # setup supervisor
 sudo cp "$HOME/peoplefinder/web/deploy/peoplefinder.conf" "$SUPERVISOR_CONF_DIR"
