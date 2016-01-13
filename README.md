@@ -17,4 +17,4 @@ Features:
 
 Demo: http://194.165.0.105:8888
 
-Developed by NextGIS and Telstra.
+Developed by NextGIS, Telstra and Fairwaves.
