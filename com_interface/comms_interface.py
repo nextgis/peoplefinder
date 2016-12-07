@@ -218,6 +218,13 @@ if __name__ == "__main__":
     try:
         queue_measurement_size_prev = 0
         while True:
+            if gpsd_listener.is_alive() is False:
+                gpsd_listener.terminate()
+                gpsd_listener.join()
+                gpsd_listener = GPSDListenerProcess(comms_model)
+                gpsd_listener.start()
+                logger.info("GPSD listener RESTARTED with pid: {0}".format(
+                    gpsd_listener.pid))
             queue_measurement_size = comms_model.number_of_measurements_in_queue()
             if queue_measurement_size != queue_measurement_size_prev:
                 queue_measurement_size_prev = queue_measurement_size
