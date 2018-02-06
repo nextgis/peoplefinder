@@ -16,6 +16,7 @@ from model.hlr import (
     HLRDBSession,
     Sms,
     Subscriber,
+    user_data_decode,
 )
 
 
@@ -90,7 +91,9 @@ def get_imsi_messages(request):
 
     query = HLRDBSession.query(
         Sms.id,
-        Sms.text,
+        func.hex(Sms.user_data).label('user_data'),
+        Sms.data_coding_scheme,
+        Sms.ud_hdr_ind,
         Sms.src_addr,
         Sms.dest_addr,
         Sms.created,
@@ -107,6 +110,8 @@ def get_imsi_messages(request):
         'sms': []
     }
 
+    multipart_massages = {}
+
     for obj in query.all():
         dest_subscriber_res = HLRDBSession.query(
             Subscriber.imsi
@@ -120,18 +125,30 @@ def get_imsi_messages(request):
             dest = "station" if dest_imsi == int(pimsi) else str(dest_imsi)
 
         direction = 'to' if obj.src_addr == pfnum else 'from'
-        sms = {
-            'id': obj.id,
-            'text': obj.text,
-            'type': direction,
-            'ts': time.strftime('%d %b %Y, %H:%M:%S', obj.created.timetuple()),
-            'dest': dest,
-        }
 
-        if direction == 'to':
-            sms['sent'] = True if obj.sent else False
+        try:
+            msg_id, msg_part_num, msg_parts_count, msg_part_text = user_data_decode(obj.user_data, obj.data_coding_scheme, (obj.ud_hdr_ind == 1) )
+        except:
+            msg_id, msg_part_num, msg_parts_count, msg_part_text = -1, 1, 1, "--Failed to decode the message--"
 
-        result['sms'].append(sms)
+        if msg_id in multipart_massages:
+            multipart_massages[msg_id]['text'] +=  msg_part_text
+        else:
+            sms = {
+                'id': obj.id,
+                'text': msg_part_text,
+                'type': direction,
+                'ts': time.strftime('%d %b %Y, %H:%M:%S', obj.created.timetuple()),
+                'dest': dest,
+            }
+
+            if direction == 'to':
+                sms['sent'] = True if obj.sent else False
+
+            result['sms'].append(sms)
+
+            if msg_parts_count > 1:
+                multipart_massages[msg_id] = result['sms'][-1]
 
     return result
 

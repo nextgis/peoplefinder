@@ -2,6 +2,7 @@
 import os
 import time
 import Queue
+import urllib
 import socket
 import datetime
 import threading
@@ -26,6 +27,7 @@ from model.hlr import (
     HLRDBSession,
     Subscriber,
     Sms,
+    create_sms
 )
 
 pf_subscriber_imsi = "1"
@@ -54,6 +56,9 @@ class CommsInterfaceServer(object):
 
             self.pf_db_conn_str = configuration.get('app:main', 'sqlalchemy.pf.url')
             self.hlr_db_conn_str = configuration.get('app:main', 'sqlalchemy.hlr.url')
+
+            self.kannel_url = configuration.get('app:main', 'kannel.url')
+            self.kannel_smssend_port = configuration.get('app:main', 'kannel.smssend.port')
 
         except ConfigParser.Error as err:
             raise ValueError('Configuration error: {0}'.format(err.message))
@@ -111,7 +116,7 @@ class CommsInterfaceServer(object):
 
         self.xmlrpc_server.register_introspection_functions()
 
-        self.xmlrpc_server.register_function(self.vty_send_sms, "send_sms")
+        self.xmlrpc_server.register_function(self.send_sms, "send_sms")
         self.xmlrpc_server.register_function(self.vty_send_silent_sms, "send_silent_sms")
         self.xmlrpc_server.register_function(lambda: self.pf_phone_number, "get_peoplefinder_number")
         self.xmlrpc_server.register_function(lambda: self.pf_subscriber_imsi, "get_peoplefinder_imsi")
@@ -189,7 +194,7 @@ class CommsInterfaceServer(object):
                 self.logger.error("Send welcome message FAILD! There is no text message!")
             else:
                 self.logger.debug("Send welcome message: {0}".format(welcome_msg))
-                if not self.vty_send_sms(imsi, welcome_msg):
+                if not self.send_sms(imsi, welcome_msg):
                     self.logger.error("Welcome message not send.")
 
         self.save_measure_to_db(meas, extension)
@@ -258,30 +263,16 @@ class CommsInterfaceServer(object):
                 if reply_msg is None:
                     self.logger.error("Send reply message FAILD! There is no text message!")
                 else:
-                    self.logger.debug("Send reply message: {0}".format(reply_msg))
-                    if not self.vty_send_sms_by_phone_number(sms_info['source'][0], reply_msg):
-                        self.logger.error("Reply message not send.")
-
                     with transaction.manager:
                         HLRDBSession.add_all([
-                            Sms(
-                                created=datetime.datetime.fromtimestamp(long(time.time())),
-                                sent=None,
-                                deliver_attempts=1,
-                                reply_path_req=0,
-                                status_rep_req=0,
-                                protocol_id=0,
-                                data_coding_scheme=0,
-                                ud_hdr_ind=0,
-                                src_addr=sms_info['source'][0],
-                                src_ton=0,
-                                src_npi=0,
-                                dest_addr=sms_info['destination'][0],
-                                dest_ton=0,
-                                dest_npi=0,
-                                text=sms_info['text'][0]
-                            )
+                            create_sms(sms_info['source'][0], sms_info['destination'][0], sms_info['text'][0], sms_info['charset'][0])
                         ])
+
+                    self.logger.debug("Send reply message. START!")
+                    if not self.send_sms_by_phone_number(sms_info['source'][0], reply_msg):
+                        self.logger.error("Reply message not send.")
+                    self.logger.debug("Send reply message. FINISH!")
+
             else:
                 time.sleep(0.1)
         self.logger.info("Process unknown adressing sms thread FINISH!")
@@ -383,39 +374,40 @@ class CommsInterfaceServer(object):
             self.vty_client_connection = None
             return False
 
-    def vty_send_sms(self, imsi, text):
-        with self.vty_use_send_sms_rlock:
-            self.logger.debug("XMLRPC command: send sms to imsi: {0}".format(imsi))
-            if self.vty_client_connection is None:
-                self.logger.error("Connection to VTY is not established")
-                return False
+    def send_sms(self, imsi, text):
+        extensions = HLRDBSession.query(Subscriber.extension).filter(Subscriber.imsi == imsi).all()
+        if len(extensions) != 1:
+            self.logger.error("Send sms failed. No subscriber with imsi {0}".format(imsi))
+            return False
+        extension = extensions[0][0]
 
-            cmd = 'subscriber imsi {0} sms sender extension {1} send {2}\n'.format(imsi, self.pf_phone_number, text)
-            self.logger.debug("VTY command: {0}".format(cmd))
-            try:
-                self.vty_client_connection.write(cmd)
-                res = self.vty_client_connection.read_until("OpenBSC>", self.vty_readtimeout_secs)
-                self.logger.debug("VTY answer: {0}".format(res))
-                return True
-            except:
-                self.logger.error("Cann't read answer from VTY")
-                self.vty_client_connection = None
-                return False
+        return self.send_sms_by_phone_number(extension, text)
 
-    def vty_send_sms_by_phone_number(self, extension, text):
-        self.logger.debug("XMLRPC command: send sms to extension: {0}".format(extension))
-        if self.vty_client_connection is None:
-            self.logger.error("Connection to VTY is not established")
+    def send_sms_by_phone_number(self, extension, text):
+        charset = "UTF-16BE"
+        coding = 2
+        data = text.encode(charset)
+        data = urllib.urlencode({'text': data})
+        url = "http://{url}:{port}/cgi-bin/sendsms?user=fairwaves&pass=fairwaves&from={sender}&to={receiver}&coding={coding}&charset={charset}&{data}".format(
+            url=self.kannel_url,
+            port=self.kannel_smssend_port,
+            sender=self.pf_phone_number,
+            receiver=extension,
+            coding=coding,
+            charset=charset,
+            data=data
+        )
+        self.logger.info("To kannel: {0}".format(url))
+
+        r = urllib.urlopen(url)
+
+        if r.code == 202:
+            self.logger.info("To kannel: OK")
+        elif r.code/100 == 4:
+            self.logger.error("There was something wrong in the request or Kannel was so configured that the message cannot be in any circumstances delivered.")
+            return False
+        elif r.code == 503:
+            self.logger.error("There was temporal failure in Kannel. Try again later.")
             return False
 
-        cmd = 'subscriber extension {0} sms sender extension {1} send {2}\n'.format(extension, self.pf_phone_number, text)
-        self.logger.debug("VTY command: {0}".format(cmd))
-        try:
-            self.vty_client_connection.write(cmd)
-            res = self.vty_client_connection.read_until("OpenBSC>", self.vty_readtimeout_secs)
-            self.logger.debug("VTY answer: {0}".format(res))
-            return True
-        except:
-            self.logger.error("Cann't read answer from VTY")
-            self.vty_client_connection = None
-            return False
+        return True
